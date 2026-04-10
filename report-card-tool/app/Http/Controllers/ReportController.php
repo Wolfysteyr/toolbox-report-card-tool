@@ -82,7 +82,6 @@ class ReportController extends Controller
             ? round(($used / $distance) * 100, 2)
             : 0;
 
-        $periodDates = explode(' - ', $first->periods);
 
         $log = $rows->map(fn($r) => [
             'date'    => $r->prev_date,
@@ -101,8 +100,8 @@ class ReportController extends Controller
             'paterins'       => $first->paterins,
             'driver'         => $first->driver,
             'atbildigais'    => $first->atbildigais,
-            'period_start'   => $periodDates[0] ?? null,
-            'period_end'     => $periodDates[1] ?? null,
+            'period_start'   => $first->prev_date,
+            'period_end'     => $last->prev_date,
             'odo_start'      => $odoStart,
             'odo_end'        => $odoEnd,
             'distance'       => $distance,
@@ -128,5 +127,19 @@ class ReportController extends Controller
             ]);
 
         return response()->json($rows);
+    }
+
+    public function fetchAllFromPeriod($month, $year)
+    {
+        $cars = Report::whereRaw("strftime('%m', prev_date) = ?", [str_pad($month, 2, '0', STR_PAD_LEFT)])
+            ->whereRaw("strftime('%Y', prev_date) = ?", [(string)$year])
+            ->distinct()
+            ->pluck('carno');
+
+        $reports = $cars->map(fn($car) =>
+            json_decode($this->fetchDataFromLocal($car, $month, $year)->getContent(), true)
+        )->filter()->values();
+
+        return response()->json($reports);
     }
 }

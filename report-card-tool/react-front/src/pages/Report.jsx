@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
 import logo from "../assets/vtl-logo-1.svg";
+import { pdf } from "@react-pdf/renderer";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import CarReportPDF from "./CarReportPDF";
+import logoUrl from "../assets/vtl-logo-1.png";
+import Modal from "react-modal";
+
+Modal.setAppElement('#root');
 
 const MONTH_NAMES = {
     1:  "Janvaris",
@@ -107,14 +115,46 @@ export default function Report() {
         }
     };
 
+   const handleDownloadPDF = async () => {
+    setLoading(true);
+    try {
+        const res      = await fetch(`/api/fetch-all/${selectedMonth}/${selectedYear}`);
+        const reports  = await res.json();
+        const zip      = new JSZip();
+
+        for (const report of reports) {
+            const blob = await pdf(
+                <CarReportPDF
+                    reports={[report]}
+                    month={selectedMonth}
+                    year={selectedYear}
+                    logoUrl={logoUrl}
+                />
+            ).toBlob();
+            zip.file(`${report.carno}_${selectedMonth}_${selectedYear}.pdf`, blob);
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, `celazimes_${selectedMonth}_${selectedYear}.zip`);
+    } catch (err) {
+        console.error("PDF download failed:", err);
+    } finally {
+        setLoading(false);
+    }
+};
     return (
         <>
-            <div className="header">
-                <img src={logo} alt="VTL logo" />
-                <h1>Celazime</h1>
-                <button onClick={handleSync} disabled={syncing}>
+            <div className="menu">
+                <button onClick={handleDownloadPDF} disabled={loading} title="Lejupielādēt atskaiti PDF formātā">
+                        Lejupielādēt PDF
+                </button>
+                <button onClick={handleSync} disabled={syncing} title="Manuāli sinhronizēt datus">
                     {syncing ? "Sinhronize..." : "Sinhronizet"}
                 </button>
+            </div>        
+            <div className="header">
+                <img src={logo} alt="VTL logo" />
+                <h1>Ceļazīme</h1>
             </div>
             <div className="body">
                 <div className="car-info">
@@ -242,7 +282,7 @@ export default function Report() {
                     <input type="text" id="finalDistance" name="finalDistance" disabled value={report?.distance ?? ""}/>
                     <label htmlFor="finalFuelUsed">Patērētā degviela (litros)</label>
                     <input type="text" id="finalFuelUsed" name="finalFuelUsed" disabled value={report?.used ?? ""}/>
-                    <label htmlFor="finalFuelCons">Degvielas patēriņs (l/100km)</label>
+                    <label htmlFor="finalFuelCons">Degvielas patēriņš (l/100km)</label>
                     <input type="text" id="finalFuelCons" name="finalFuelCons" disabled value={report?.factual_cons ?? ""}/>
                     <label htmlFor="atbildigais">Atbildiga persona:</label>
                     <input type="text" id="atbildigais" name="atbildigais" disabled value={report?.atbildigais ?? ""} className="atbildigais"/>
@@ -250,8 +290,29 @@ export default function Report() {
             </div>
 
             <footer>
-                <p>SIS DOKUMENTS IR PARAKSTITS AR DROSU ELEKTRONISKO PARAKSTU UN SATUR LAIKA ZIMOGU</p>
+                <p>ŠIS DOKUMENTS IR PARAKSTĪTS AR DROŠU ELEKTRONISKO PARAKSTU UN SATUR LAIKA ZĪMOGU</p>
             </footer>
+
+            <Modal
+                isOpen={loading}
+                contentLabel="Loading"
+                style={{
+                    content: {
+                        top: '50%',
+                        left: '50%',
+                        right: 'auto',
+                        bottom: 'auto',
+                        marginRight: '-50%',
+                        transform: 'translate(-50%, -50%)',
+                        textAlign: 'center',
+                    },
+                    overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                    }
+                }}
+            >
+                <p>Notiek ielāde...</p>
+            </Modal>
         </>
     );
 }

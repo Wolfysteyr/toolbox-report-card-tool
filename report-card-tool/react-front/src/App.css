@@ -35,6 +35,24 @@ body {
   height: 30px;
   width: auto;
 }
+
+.menu {
+  display: flex;
+  justify-content: space-between;
+  background: #b4b4b4;
+  padding: 8px 40px;
+  border-bottom: 3px solid #333;
+  border-bottom-style: dashed;
+}
+
+.menu button{
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border: solid 1px #333;
+  border-radius: 12px;
+}
 /* MAIN LAYOUT */
 .body {
   display: grid;
