@@ -9,5 +9,5 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/copy', [ReportController::class, 'copy']);
-Route::get('/fetch-data/{car}&{month}&{year}', [ReportController::class, 'fetchDataFromLocal']);
+Route::get('/fetch-data/{car}/{month}/{year}', [ReportController::class, 'fetchDataFromLocal']);
 Route::get('/available-data', [ReportController::class, 'getAvailableData']);

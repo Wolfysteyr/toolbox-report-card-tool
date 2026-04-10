@@ -1,217 +1,213 @@
 import { useState, useEffect } from "react";
+import logo from "../assets/vtl-logo-1.svg";
+
+const MONTH_NAMES = {
+    1:  "Janvaris",
+    2:  "Februaris",
+    3:  "Marts",
+    4:  "Aprilis",
+    5:  "Maijs",
+    6:  "Junijs",
+    7:  "Julijs",
+    8:  "Augusts",
+    9:  "Septembris",
+    10: "Oktobris",
+    11: "Novembris",
+    12: "Decembris",
+};
 
 export default function Report() {
+    const [availableData, setAvailableData] = useState([]);
 
-    // all of this is being copied from the provided PDFs and is subject to change once everything is discussed
-
-    // state for pulled data for selected car and period
-    const [data, setData] = useState(null); // not needed?
-
-    // available cols
-    // prev_date, periods, volume, prev_volume, summa, mileage, prev_mileage, mileage_consumption (literally just the driven km), product, carno, driver, bakas_tilpums, paterins, motora_tilpums, automarka, atbildigais
-    // THIS IS SO CONFUSING
-
-    // states for dropdown selections
-    const [selectedCar, setSelectedCar] = useState("");
-    const [selectedYear, setSelectedYear] = useState("");
+    const [selectedCar, setSelectedCar]     = useState("");
     const [selectedMonth, setSelectedMonth] = useState("");
+    const [selectedYear, setSelectedYear]   = useState("");
 
-    const [availableCars, setAvailableCars] = useState([]); // for dropdown options
-    const [availableMonths, setAvailableMonths] = useState([]); // for dropdown options
-    const [availableYears, setAvailableYears] = useState([]); // for dropdown options
+    const [report, setReport] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [syncing, setSyncing] = useState(false);
 
-    // states for car info
-    const [carMake, setCarMake] = useState(""); 
-    const [carPlate, setCarPlate] = useState(""); 
-    const [carEngineDisp, setCarEngineDisp] = useState(""); // why?
-    const [carFuelType, setCarFuelType] = useState(""); 
-    const [carFuelCap, setCarFuelCap] = useState("");
-    const [carFuelCons, setCarFuelCons] = useState("");
-    const [driverName, setDriverName] = useState("");
-    
-    // states for report details
-    const [reportFuelStart, setReportFuelStart] = useState("");
-    const [reportReceived, setReportReceived] = useState(""); // i guess this is the amount of fuel received during the period?
-    const [reportFactualCons, setReportFactualCons] = useState("");
-    const [reportUsedFuel, setReportUsedFuel] = useState("");
-    const [reportFuelEnd, setReportFuelEnd] = useState("");
+    // Derived cascading options
+    const availableYears  = [...new Set(availableData.map(r => r.year))].sort();
+    const availableMonths = [...new Set(availableData.filter(r => r.year == selectedYear).map(r => parseInt(r.month)))].sort((a, b) => a - b);
+    const availableCars   = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == selectedMonth).map(r => r.carno))].sort();
 
-    // states for period details
-    const [periodOdoStart, setPeriodOdoStart] = useState("");
-    const [periodOdoEnd, setPeriodOdoEnd] = useState("");
-    const [periodDistance, setPeriodDistance] = useState("");
-    const [periodStartDate, setPeriodStartDate] = useState("");
-    const [periodEndDate, setPeriodEndDate] = useState("");
-
-    // states for report log
-    const [reportLog, setReportLog] = useState([]); // this will be an array of objects with date, fuel type, amount, price, driver
-
-    // effect to fetch data
+    // Fetch available combinations on mount
     useEffect(() => {
         async function fetchAvailableData() {
             try {
-                const response = await fetch("/api/available-data");
-                const data = await response.json();
-                setAvailableCars(data.cars);
-                setAvailableMonths(data.months);
-                setAvailableYears(data.years);
+                const res  = await fetch("/api/available-data");
+                const data = await res.json();
+                setAvailableData(data);
+
+                const years  = [...new Set(data.map(r => r.year))].sort();
+                const year   = years[0];
+                const months = [...new Set(data.filter(r => r.year == year).map(r => parseInt(r.month)))].sort((a, b) => a - b);
+                const month  = months[0];
+                const cars   = [...new Set(data.filter(r => r.year == year && r.month == month).map(r => r.carno))].sort();
+
+                setSelectedYear(year);
+                setSelectedMonth(month);
+                setSelectedCar(cars[0]);
             } catch (err) {
-                console.error("Failed to fetch available data: ", err);
+                console.error("Failed to fetch available data:", err);
             }
         }
         fetchAvailableData();
     }, []);
-    
-    // effect to fetch report data based on selections
+
+    // When year changes, cascade month and car
     useEffect(() => {
-        async function fetchReportData() {
-            if (selectedCar && selectedMonth && selectedYear) {
-                try {
-                    const response = await fetch(`/api/fetch-data/${selectedCar}&${selectedMonth}&${selectedYear}`);
-                    const data = await response.json();
-                    // set all the states based on the fetched data
-                    setCarMake(data.automarka);
-                    setCarPlate(data.carno);
-                    setCarEngineDisp(data.motora_tilpums);
-                    setCarFuelType(data.product);
-                    setCarFuelCap(data.bakas_tilpums);
-                    setCarFuelCons(data.paterins);
-                    setDriverName(data.driver);
-                    setReportFuelStart(data.prev_volume);
-                    setReportReceived(data.volume);
-                    setReportFuelEnd(data.prev_volume + data.volume);
+        if (!selectedYear || !availableData.length) return;
+        const months = [...new Set(availableData.filter(r => r.year == selectedYear).map(r => parseInt(r.month)))].sort((a, b) => a - b);
+        const month  = months[0];
+        const cars   = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == month).map(r => r.carno))].sort();
+        setSelectedMonth(month);
+        setSelectedCar(cars[0]);
+    }, [selectedYear]);
 
+    // When month changes, cascade car
+    useEffect(() => {
+        if (!selectedMonth || !availableData.length) return;
+        const cars = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == selectedMonth).map(r => r.carno))].sort();
+        setSelectedCar(cars[0]);
+    }, [selectedMonth]);
 
-    const handleCopy = async () => {
-        // placeholder, didnt even check if its correct, doesnt work obviously
-        try{
-            fetch("/api/copy")
-            .then(response => response.json())
-            .then(data => {
-                const textToCopy = data.text; // assuming the API returns { text: "the text to copy" }
-                navigator.clipboard.writeText(textToCopy)
-                .then(() => {
-                    alert("Teksts ir nokopēts uz starpliktuvi!");
-                })
-                .catch(err => {
-                    console.error("Failed to copy: ", err);
-                });
-            })
-            .catch(err => {
-                console.error("Failed to fetch copy data: ", err);
-            });
-        }
-            catch (err) {
-                console.error("Failed to copy: ", err);
+    // Fetch report whenever final selection is complete
+    useEffect(() => {
+        if (!selectedCar || !selectedMonth || !selectedYear) return;
+
+        async function fetchReport() {
+            setLoading(true);
+            try {
+                const res  = await fetch(`/api/fetch-data/${selectedCar}/${selectedMonth}/${selectedYear}`);
+                const data = await res.json();
+                setReport(data);
+            } catch (err) {
+                console.error("Failed to fetch report:", err);
+                setReport(null);
+            } finally {
+                setLoading(false);
             }
+        }
+        fetchReport();
+    }, [selectedCar, selectedMonth, selectedYear]);
+
+    const handleSync = async () => {
+        setSyncing(true);
+        try {
+            const res  = await fetch("/api/copy");
+            const data = await res.json();
+            alert(data.message);
+        } catch (err) {
+            console.error("Sync failed:", err);
+            alert("Sinhronizacija neizdevas.");
+        } finally {
+            setSyncing(false);
+        }
     };
 
     return (
         <>
-            <div className="header">    
-                <img src="src\assets\vtl-logo-1.svg" />
-                <h1>Ceļazīme</h1>
-                <button onClick={handleCopy}>Kopēt</button>
+            <div className="header">
+                <img src={logo} alt="VTL logo" />
+                <h1>Celazime</h1>
+                <button onClick={handleSync} disabled={syncing}>
+                    {syncing ? "Sinhronize..." : "Sinhronizet"}
+                </button>
             </div>
             <div className="body">
                 <div className="car-info">
                     <div>
                         <label htmlFor="car">Transportlīdzekļa marka:</label>
-                        <input type="text" id="car" name="car" disabled defaultValue={carMake}/>
+                        <input type="text" id="car" name="car" disabled value={report?.automarka ?? ""}/>
 
-                        <label htmlFor="plate">Valsts reg. numurs:</label>
-                        <input type="text" id="plate" name="plate" disabled defaultValue={carPlate}/>
+                        <label htmlFor="plate">Valsts reģ. numurs:</label>
+                        <input type="text" id="plate" name="plate" disabled value={report?.carno ?? ""}/>
 
                         <label htmlFor="engine">Motora tilpums:</label>
-                        <input type="text" id="engine" name="engine" disabled defaultValue={carEngineDisp}/>
+                        <input type="text" id="engine" name="engine" disabled value={report?.motora_tilpums ?? ""}/>
 
-                        <label htmlFor="fuelType">Degvielas :</label>
-                        <input type="text" id="fuelType" name="fuelType" disabled defaultValue={carFuelType}/>
+                        <label htmlFor="fuelType">Degviela:</label>
+                        <input type="text" id="fuelType" name="fuelType" disabled value={report?.product ?? ""}/>
 
-                        <label htmlFor="fuelCap">Bāka tilpums:</label>
-                        <input type="text" id="fuelCap" name="fuelCap" disabled defaultValue={carFuelCap}/>
+                        <label htmlFor="fuelCap">Bakas tilpums:</label>
+                        <input type="text" id="fuelCap" name="fuelCap" disabled value={report?.bakas_tilpums ?? ""}/>
 
-                        <label htmlFor="driverName">Vadītājs:</label>
-                        <input type="text" id="driverName" name="driverName" disabled defaultValue={driverName}/>
+                        <label htmlFor="driverName">Vadītajs:</label>
+                        <input type="text" id="driverName" name="driverName" disabled value={report?.driver ?? ""}/>
                     </div>
-                    {/* Report Details */}
                     <div>
-                        <label htmlFor="reportFuelStart">Atlikums izbraucot:</label>
-                        <input type="text" id="reportFuelStart" name="reportFuelStart" disabled defaultValue={reportFuelStart}/>
+                        <label htmlFor="reportFuelStart">Atlikums izbraucot (L):</label>
+                        <input type="text" id="reportFuelStart" name="reportFuelStart" disabled value={report?.fuel_start ?? ""}/>
 
-                        <label htmlFor="reportReceived">Saņemts:</label>
-                        <input type="text" id="reportReceived" name="reportReceived" disabled defaultValue={reportReceived}/>
+                        <label htmlFor="reportReceived">Saņemts (L):</label>
+                        <input type="text" id="reportReceived" name="reportReceived" disabled value={report?.received ?? ""}/>
 
-                        <label htmlFor="carFuelCons">Patēriņa norma uz 100 km:</label>
-                        <input type="text" id="carFuelCons" name="carFuelCons" disabled defaultValue={carFuelCons}/>
+                        <label htmlFor="carFuelCons">L/100km norma:</label>
+                        <input type="text" id="carFuelCons" name="carFuelCons" disabled value={report?.paterins ?? ""}/>
 
-                        <label htmlFor="factualCarFuelCons">Faktiskais patēriņš uz 100 km:</label>
-                        <input type="text" id="factualCarFuelCons" name="factualCarFuelCons" disabled defaultValue={reportFactualCons}/>
+                        <label htmlFor="factualCarFuelCons">Faktiskais L/100km:</label>
+                        <input type="text" id="factualCarFuelCons" name="factualCarFuelCons" disabled value={report?.factual_cons ?? ""}/>
 
-                        <label htmlFor="reportUsedFuel">Izlietota degviela kopā:</label>
-                        <input type="text" id="reportUsedFuel" name="reportUsedFuel" disabled defaultValue={reportUsedFuel}/>
+                        <label htmlFor="reportUsedFuel">Izlietota degviela kopā (L):</label>
+                        <input type="text" id="reportUsedFuel" name="reportUsedFuel" disabled value={report?.used ?? ""}/>
 
-                        <label htmlFor="reportFuelEnd">Atlikums atgriežoties:</label>
-                        <input type="text" id="reportFuelEnd" name="reportFuelEnd" disabled defaultValue={reportFuelEnd}/>
+                        <label htmlFor="reportFuelEnd">Atlikums atgriežoties (L):</label>
+                        <input type="text" id="reportFuelEnd" name="reportFuelEnd" disabled value={report?.fuel_end ?? ""}/>
                     </div>
                 </div>
 
                 <div className="car-selection">
                     <div className="selection-field">
                         <label htmlFor="carSelect">a/m valsts numurs</label>
-                        <select id="carSelect" name="carSelect"> {/* placeholder */}
-                            <option value="car1">Car 1</option>
-                            <option value="car2">Car 2</option>
-                            <option value="car3">Car 3</option>
+                        <select id="carSelect" value={selectedCar} onChange={e => setSelectedCar(e.target.value)}>
+                            {availableCars.map(car => (
+                                <option key={car} value={car}>{car}</option>
+                            ))}
                         </select>
                     </div>
 
                     <div className="selection-field">
                         <label htmlFor="year">gads</label>
-                        <select id="year" name="year"> {/* placeholder */}
-                            <option value="2026">2026</option>
+                        <select id="year" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+                            {availableYears.map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
                         </select>
                     </div>
 
                     <div className="selection-field">
                         <label htmlFor="month">mēnesis</label>
-                        <select id="month" name="month"> {/* placeholder */}
-                            <option value="january">Janvāris</option>
-                            <option value="february">Februāris</option>
-                            <option value="march">Marts</option>
-                            <option value="april">Aprīlis</option>
-                            <option value="may">Maijs</option>
-                            <option value="june">Jūnijs</option>
-                            <option value="july">Jūlijs</option>
-                            <option value="august">Augusts</option>
-                            <option value="september">Septembris</option>
-                            <option value="october">Oktobris</option>
-                            <option value="november">Novembris</option>
-                            <option value="december">Decembris</option>
+                        <select id="month" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
+                            {availableMonths.map(m => (
+                                <option key={m} value={m}>{MONTH_NAMES[m]}</option>
+                            ))}
                         </select>
                     </div>
                 </div>
+
                 <div className="report-details">
                     <div className="period-details">
                         <div className="period-field">
                             <label htmlFor="startDate">Sākuma datums</label>
-                            <input type="date" id="startDate" name="startDate" disabled defaultValue={periodStartDate}/>
+                            <input type="text" id="startDate" name="startDate" disabled value={report?.period_start ?? ""}/>
                         </div>
                         <div className="period-field">
                             <label htmlFor="endDate">Beigu datums</label>
-                            <input type="date" id="endDate" name="endDate" disabled defaultValue={periodEndDate}/>
+                            <input type="text" id="endDate" name="endDate" disabled value={report?.period_end ?? ""}/>
                         </div>
                         <div className="period-field">
-                            <label htmlFor="odoStart">Sākuma odometrs</label>
-                            <input type="text" id="odoStart" name="odoStart" disabled defaultValue={periodOdoStart}/>
+                            <label htmlFor="odoStart">Perioda sākumā</label>
+                            <input type="text" id="odoStart" name="odoStart" disabled value={report?.odo_start ?? ""}/>
                         </div>
                         <div className="period-field">
-                            <label htmlFor="odoEnd">Beigu odometrs</label>
-                            <input type="text" id="odoEnd" name="odoEnd" disabled defaultValue={periodOdoEnd}/>
+                            <label htmlFor="odoEnd">Perioda beigās</label>
+                            <input type="text" id="odoEnd" name="odoEnd" disabled value={report?.odo_end ?? ""}/>
                         </div>
                         <div className="period-field">
-                            <label htmlFor="distance">Nobraukums</label>
-                            <input type="text" id="distance" name="distance" disabled defaultValue={periodDistance}/>
+                            <label htmlFor="distance">Nobrauktie km</label>
+                            <input type="text" id="distance" name="distance" disabled value={report?.distance ?? ""}/>
                         </div>
                     </div>
                     <br />
@@ -223,34 +219,39 @@ export default function Report() {
                                     <th>degviela</th>
                                     <th>daudzums(l)</th>
                                     <th>cena bez PVN</th>
-                                    <th>vadītājs</th>
+                                    <th>vaditājs</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr> {/* placeholder */}
-                                    <td>2023-10-01</td>
-                                    <td>DĪZELIS</td>
-                                    <td>50</td>
-                                    <td>75</td>
-                                    <td>John Doe</td>
-                                </tr>
+                                {(report?.log ?? []).map((entry, i) => (
+                                    <tr key={i}>
+                                        <td>{entry.date}</td>
+                                        <td>{entry.product}</td>
+                                        <td>{entry.amount}</td>
+                                        <td>{entry.summa}</td>
+                                        <td>{entry.driver}</td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
                 </div>
+
                 <div className="period-final">
-                    <label htmlFor="finalDistance">Nobraukums</label><br />
-                    <input type="text" id="finalDistance" name="finalDistance" disabled/><br />
-                    <label htmlFor="finalFuelCons">Patēriņš uz 100 km</label><br />
-                    <input type="text" id="finalFuelCons" name="finalFuelCons" disabled/><br />
-                    <label htmlFor="finalFuelUsed">Patērētā degviela (l)</label><br />
-                    <input type="text" id="finalFuelUsed" name="finalFuelUsed" disabled/><br />
+                    <label htmlFor="finalDistance">Nobrauktie kilometri </label>
+                    <input type="text" id="finalDistance" name="finalDistance" disabled value={report?.distance ?? ""}/>
+                    <label htmlFor="finalFuelUsed">Patērētā degviela (litros)</label>
+                    <input type="text" id="finalFuelUsed" name="finalFuelUsed" disabled value={report?.used ?? ""}/>
+                    <label htmlFor="finalFuelCons">Degvielas patēriņs (l/100km)</label>
+                    <input type="text" id="finalFuelCons" name="finalFuelCons" disabled value={report?.factual_cons ?? ""}/>
+                    <label htmlFor="atbildigais">Atbildiga persona:</label>
+                    <input type="text" id="atbildigais" name="atbildigais" disabled value={report?.atbildigais ?? ""} className="atbildigais"/>
                 </div>
             </div>
 
             <footer>
-                <p>ŠIS DOKUMENTS IR PARAKSTĪTS AR DROŠU ELEKTRONISKO PARAKSTU UN SATUR LAIKA ZĪMOGU </p>
+                <p>SIS DOKUMENTS IR PARAKSTITS AR DROSU ELEKTRONISKO PARAKSTU UN SATUR LAIKA ZIMOGU</p>
             </footer>
         </>
-    )
+    );
 }

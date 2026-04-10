@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Report extends Model
 {
+    protected $table = 'energy_local';
     protected $fillable = [
         'prev_date',
         'periods',

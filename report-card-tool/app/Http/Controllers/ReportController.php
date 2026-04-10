@@ -7,62 +7,126 @@ use App\Models\Report;
 
 class ReportController extends Controller
 {
-
-    public function copy(){
-        // This method will handle the copying of data from the external database to the local database
-
-        // this is where it will call the Porter API and get the data
-
+    public function copy()
+    {
         $data = $this->fetchDataFromPorter();
-        $data = json_decode($data, true); // assuming the data is in JSON format
-        // now we will loop through the data and save it to the local database
-        foreach($data as $item){
-            // here we will create a new Report model and save the data to the local database
-            $report = new Report();
-            $report->prev_date = $item['prev_date'];
-            $report->periods = $item['periods'];
-            $report->volume = $item['volume'];
-            $report->prev_volume = $item['prev_volume'];
-            $report->summa = $item['summa'];
-            $report->mileage = $item['mileage'];
-            $report->prev_mileage = $item['prev_mileage'];
-            $report->mileage_consumption = $item['mileage_consumption'];
-            $report->product = $item['product'];
-            $report->carno = $item['carno'];
-            $report->driver = $item['driver'];
-            $report->bakas_tilpums = $item['bakas_tilpums'];
-            $report->paterins = $item['paterins'];
-            $report->motora_tilpums = $item['motora_tilpums'];
-            $report->automarka = $item['automarka'];
-            $report->atbildigais = $item['atbildigais'];
-            $report->save();
+
+        if (!$data) {
+            return response()->json(['message' => 'Failed to fetch data from Porter.'], 500);
         }
+
+        $data = json_decode($data, true);
+
+        foreach ($data as $item) {
+            Report::updateOrCreate(
+                [
+                    'carno'     => $item['carno'],
+                    'prev_date' => $item['prev_date'],
+                    'volume'    => $item['volume'],
+                ],
+                [
+                    'periods'             => $item['periods'],
+                    'prev_volume'         => $item['prev_volume'],
+                    'summa'               => $item['summa'],
+                    'mileage'             => $item['mileage'],
+                    'prev_mileage'        => $item['prev_mileage'],
+                    'mileage_consumption' => $item['mileage_consumption'],
+                    'product'             => $item['product'],
+                    'driver'              => $item['driver'],
+                    'bakas_tilpums'       => $item['bakas_tilpums'],
+                    'paterins'            => $item['paterins'],
+                    'motora_tilpums'      => $item['motora_tilpums'],
+                    'automarka'           => $item['automarka'],
+                    'atbildigais'         => $item['atbildigais'],
+                ]
+            );
+        }
+
+        return response()->json(['message' => 'Data synced successfully.']);
     }
 
-    public function fetchDataFromPorter(){
-        // This method will handle the actual fetching of data from the Porter API
-
-        // this is where you will make the API call to Porter and return the data
+    public function fetchDataFromPorter()
+    {
+        // TODO: implement Porter API call
+        // return Http::get('http://porter.vtl.lv/api/template/...')->body();
+        
+        return null;
     }
 
     public function fetchDataFromLocal($car, $month, $year){
-        // This method will handle fetching data from the local database and returning it to the frontend
-        $reports = Report::where('carno', $car)
-                        ->whereMonth('prev_date', $month)
-                        ->whereYear('prev_date', $year)
-                        ->get();
-        return response()->json($reports);
+        $rows = Report::where('carno', $car)
+            ->whereRaw("strftime('%m', prev_date) = ?", [str_pad($month, 2, '0', STR_PAD_LEFT)])
+            ->whereRaw("strftime('%Y', prev_date) = ?", [(string)$year])
+            ->orderBy('prev_date')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return response()->json(null);
+        }
+
+        $first = $rows->first();
+        $last  = $rows->last();
+
+        $odoStart  = $first->prev_mileage;
+        $odoEnd    = $last->mileage;
+        $distance  = $odoEnd - $odoStart;
+
+        $fuelStart = $first->prev_volume;
+        $fuelEnd   = $last->volume;
+        $received  = $rows->sum(fn($r) => $r->volume - $r->prev_volume);
+        
+
+        $used      = round($fuelStart + $received - $fuelEnd, 2);
+
+        $factualCons = $distance > 0
+            ? round(($used / $distance) * 100, 2)
+            : 0;
+
+        $periodDates = explode(' - ', $first->periods);
+
+        $log = $rows->map(fn($r) => [
+            'date'    => $r->prev_date,
+            'product' => $r->product,
+            'amount'  => round($r->volume - $r->prev_volume, 2),
+            'summa'   => $r->summa,
+            'driver'  => $r->driver,
+        ]);
+
+        return response()->json([
+            'automarka'      => $first->automarka,
+            'carno'          => $first->carno,
+            'motora_tilpums' => $first->motora_tilpums,
+            'product'        => $first->product,
+            'bakas_tilpums'  => $first->bakas_tilpums,
+            'paterins'       => $first->paterins,
+            'driver'         => $first->driver,
+            'atbildigais'    => $first->atbildigais,
+            'period_start'   => $periodDates[0] ?? null,
+            'period_end'     => $periodDates[1] ?? null,
+            'odo_start'      => $odoStart,
+            'odo_end'        => $odoEnd,
+            'distance'       => $distance,
+            'fuel_start'     => round($fuelStart, 2),
+            'received'       => round($received, 2),
+            'used'           => $used,
+            'fuel_end'       => round($fuelEnd, 2),
+            'factual_cons'   => $factualCons,
+            'log'            => $log,
+        ]);
     }
 
-    public function getAvailableData(){
-        // This method will return the available cars, months, and years for the dropdowns in the frontend
-        $cars = Report::select('carno')->distinct()->get();
-        $months = Report::selectRaw('MONTH(prev_date) as month')->distinct()->get();
-        $years = Report::selectRaw('YEAR(prev_date) as year')->distinct()->get();
-        return response()->json([
-            'cars' => $cars,
-            'months' => $months,
-            'years' => $years
-        ]);
+    public function getAvailableData()
+    {
+        $rows = Report::selectRaw("strftime('%Y', prev_date) as year, strftime('%m', prev_date) as month, carno")
+            ->distinct()
+            ->orderByRaw("year, month, carno")
+            ->get()
+            ->map(fn($r) => [
+                'year'  => (int) $r->year,
+                'month' => (int) $r->month,
+                'carno' => $r->carno,
+            ]);
+
+        return response()->json($rows);
     }
 }
