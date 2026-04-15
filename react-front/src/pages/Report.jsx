@@ -65,36 +65,36 @@ export default function Report() {
         fetchAvailableData();
     }, []);
 
-    // when year or month changes, ensure the selected car is still valid
-    useEffect(() => {
-        if (!selectedYear || !selectedMonth|| !availableData.length) return;
-    const validCars = availableData
-        .filter(r => r.year == selectedYear && r.month == selectedMonth)
-        .map(r => r.carno);
-    const isCurrentCarValid = validCars.includes(selectedCar);
-    if (!isCurrentCarValid && validCars.length > 0) {
-        setSelectedCar(validCars[0]);
-    }
-    }, [selectedYear, selectedMonth, availableData]);
-    // Fetch report whenever final selection is complete
-    useEffect(() => {
-        if (!selectedCar || !selectedMonth || !selectedYear) return;
+    // // when year or month changes, ensure the selected car is still valid
+    // useEffect(() => {
+    //     if (!selectedYear || !selectedMonth|| !availableData.length) return;
+    // const validCars = availableData
+    //     .filter(r => r.year == selectedYear && r.month == selectedMonth)
+    //     .map(r => r.carno);
+    // const isCurrentCarValid = validCars.includes(selectedCar);
+    // if (!isCurrentCarValid && validCars.length > 0) {
+    //     setSelectedCar(validCars[0]);
+    // }
+    // }, [selectedYear, selectedMonth, availableData]);
+    // // Fetch report whenever final selection is complete
+    // useEffect(() => {
+    //     if (!selectedCar || !selectedMonth || !selectedYear) return;
 
-        async function fetchReport() {
-            setLoading(true);
-            try {
-                const res  = await fetch(`/api/fetch-data/${selectedCar}/${selectedMonth}/${selectedYear}`);
-                const data = await res.json();
-                setReport(data);
-            } catch (err) {
-                console.error("Failed to fetch report:", err);
-                setReport(null);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchReport();
-    }, [selectedCar, selectedMonth, selectedYear]);
+    //     async function fetchReport() {
+    //         setLoading(true);
+    //         try {
+    //             const res  = await fetch(`/api/fetch-data/${selectedCar}/${selectedMonth}/${selectedYear}`);
+    //             const data = await res.json();
+    //             setReport(data);
+    //         } catch (err) {
+    //             console.error("Failed to fetch report:", err);
+    //             setReport(null);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     }
+    //     fetchReport();
+    // }, [selectedCar, selectedMonth, selectedYear]);
 
     const handleSync = async () => {
         setSyncing(true);
