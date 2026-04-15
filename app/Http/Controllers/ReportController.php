@@ -47,9 +47,18 @@ class ReportController extends Controller
 
     public function fetchDataFromPorter()
     {
-        // TODO: implement Porter API call
-        // return Http::get('http://porter.vtl.lv/api/template/...')->body();
-        return null;
+        $api_key = "2e635e5e1a124ba425c87741e212e155"; // temporary hardcoded API key, should be moved to .env
+        $url = "localhost:8080/api/templates/Degvielas/json";
+
+        $response = Http::withHeaders([
+            'X-API-Key' => $api_key,
+        ])->get($url);
+
+        if (response->failed()){
+            return null;
+        }
+
+        return $response->body();
     }
 
     public function fetchDataFromLocal($car, $month, $year)
