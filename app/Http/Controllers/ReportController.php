@@ -81,9 +81,9 @@ class ReportController extends Controller
         $odoEnd    = $last->mileage;
         $distance  = $odoEnd - $odoStart;
 
-        $fuelStart = $first->prev_volume;
+        $fuelStart = $first->prev_volume; // gets the fuel volume at the start of the period, grabbing the previous month's last entry
         $fuelEnd   = $last->volume;
-        $received  = $rows->sum(fn($r) => $r->volume - $r->prev_volume);
+        $received  = $rows->sum(fn($r) => $r->volume);
         $used      = round($fuelStart + $received - $fuelEnd, 2);
 
         $factualCons = $distance > 0
@@ -112,8 +112,8 @@ class ReportController extends Controller
             'odo_start'      => $odoStart,
             'odo_end'        => $odoEnd,
             'distance'       => $distance,
-            'fuel_start'     => round($fuelStart, 2),
-            'received'       => round($received, 2),
+            'fuel_start'     => $fuelStart,
+            'received'       => $received,
             'used'           => $used,
             'fuel_end'       => round($fuelEnd, 2),
             'factual_cons'   => $factualCons,
