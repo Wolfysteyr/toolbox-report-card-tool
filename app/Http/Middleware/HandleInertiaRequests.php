@@ -43,7 +43,11 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => [
+                'name' => 'Guest User',
+                'email' => 'guest@vtl.lv',
+                'avatar' => null, // This prevents the 'reading avatar' error
+            ],
             ],
         ]);
     }
