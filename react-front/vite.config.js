@@ -1,13 +1,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import laravel from 'laravel-vite-plugin'
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-        '/api': 'http://localhost:8000'
+    plugins: [
+        laravel({
+            input: ['react-front/src/main.jsx'],
+            refresh: true,
+        }),
+        react(),
+    ],
+    server: {
+        proxy: {
+            '/api': 'http://localhost:8000'
+        }
     }
-}
 })
-
