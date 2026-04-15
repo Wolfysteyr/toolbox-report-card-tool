@@ -66,21 +66,21 @@ export default function Report() {
     }, []);
 
     // When year changes, cascade month and car
-    useEffect(() => {
-        if (!selectedYear || !availableData.length) return;
-        const months = [...new Set(availableData.filter(r => r.year == selectedYear).map(r => parseInt(r.month)))].sort((a, b) => a - b);
-        const month  = months[0];
-        const cars   = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == month).map(r => r.carno))].sort();
-        setSelectedMonth(month);
-        setSelectedCar(cars[0]);
-    }, [selectedYear]);
+    // useEffect(() => {
+    //     if (!selectedYear || !availableData.length) return;
+    //     const months = [...new Set(availableData.filter(r => r.year == selectedYear).map(r => parseInt(r.month)))].sort((a, b) => a - b);
+    //     const month  = months[0];
+    //     const cars   = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == month).map(r => r.carno))].sort();
+    //     setSelectedMonth(month);
+    //     setSelectedCar(cars[0]);
+    // }, [selectedYear]);
 
-    // When month changes, cascade car
-    useEffect(() => {
-        if (!selectedMonth || !availableData.length) return;
-        const cars = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == selectedMonth).map(r => r.carno))].sort();
-        setSelectedCar(cars[0]);
-    }, [selectedMonth]);
+    // // When month changes, cascade car
+    // useEffect(() => {
+    //     if (!selectedMonth || !availableData.length) return;
+    //     const cars = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == selectedMonth).map(r => r.carno))].sort();
+    //     setSelectedCar(cars[0]);
+    // }, [selectedMonth]);
 
     // Fetch report whenever final selection is complete
     useEffect(() => {
