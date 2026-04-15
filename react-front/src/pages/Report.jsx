@@ -41,29 +41,29 @@ export default function Report() {
     const availableCars   = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == selectedMonth).map(r => r.carno))].sort();
 
     // Fetch available combinations on mount
-    useEffect(() => {
-        document.title = "Logbook";
-        async function fetchAvailableData() {
-            try {
-                const res  = await fetch("/api/available-data");
-                const data = await res.json();
-                setAvailableData(data);
+    // useEffect(() => {
+    //     document.title = "Logbook";
+    //     async function fetchAvailableData() {
+    //         try {
+    //             const res  = await fetch("/api/available-data");
+    //             const data = await res.json();
+    //             setAvailableData(data);
 
-                const years  = [...new Set(data.map(r => r.year))].sort();
-                const year   = years[0];
-                const months = [...new Set(data.filter(r => r.year == year).map(r => parseInt(r.month)))].sort((a, b) => a - b);
-                const month  = months[0];
-                const cars   = [...new Set(data.filter(r => r.year == year && r.month == month).map(r => r.carno))].sort();
+    //             const years  = [...new Set(data.map(r => r.year))].sort();
+    //             const year   = years[0];
+    //             const months = [...new Set(data.filter(r => r.year == year).map(r => parseInt(r.month)))].sort((a, b) => a - b);
+    //             const month  = months[0];
+    //             const cars   = [...new Set(data.filter(r => r.year == year && r.month == month).map(r => r.carno))].sort();
 
-                setSelectedYear(year);
-                setSelectedMonth(month);
-                setSelectedCar(cars[0]);
-            } catch (err) {
-                console.error("Failed to fetch available data:", err);
-            }
-        }
-        fetchAvailableData();
-    }, []);
+    //             setSelectedYear(year);
+    //             setSelectedMonth(month);
+    //             setSelectedCar(cars[0]);
+    //         } catch (err) {
+    //             console.error("Failed to fetch available data:", err);
+    //         }
+    //     }
+    //     fetchAvailableData();
+    // }, []);
 
     
     // Fetch report whenever final selection is complete
