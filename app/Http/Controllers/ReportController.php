@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Report;
-use Illuminate\Support\Facades\Http
+use Illuminate\Support\Facades\Http;
 
 class ReportController extends Controller
 {
@@ -49,13 +49,13 @@ class ReportController extends Controller
     public function fetchDataFromPorter()
     {
         $api_key = "2e635e5e1a124ba425c87741e212e155"; // temporary hardcoded API key, should be moved to .env
-        $url = "localhost:8080/api/templates/Degvielas/json";
+        $url = "http://localhost:80/api/templates/Degvielas/json";
 
         $response = Http::withHeaders([
             'X-API-Key' => $api_key,
         ])->get($url);
 
-        if (response->failed()){
+        if ($response->failed()){
             return null;
         }
 
@@ -93,7 +93,7 @@ class ReportController extends Controller
         $log = $rows->map(fn($r) => [
             'date'    => $r->prev_date,
             'product' => $r->product,
-            'amount'  => round($r->volume - $r->prev_volume, 2),
+            'amount'  => $r->volume,
             'summa'   => $r->summa,
             'driver'  => $r->driver,
         ]);

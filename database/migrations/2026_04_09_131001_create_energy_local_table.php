@@ -13,22 +13,22 @@ return new class extends Migration
     {
         Schema::create('energy_local', function (Blueprint $table) {
             $table->id();
-            $table->date('prev_date');
-            $table->string('periods');
-            $table->float('volume');
-            $table->float('prev_volume');
-            $table->float('summa');
-            $table->float('mileage');
-            $table->float('prev_mileage');
-            $table->float('mileage_consumption');
-            $table->string('product');
-            $table->string('carno');
-            $table->string('driver');
-            $table->float('bakas_tilpums');
-            $table->float('paterins');
-            $table->float('motora_tilpums');
-            $table->string('automarka');
-            $table->string('atbildigais');
+            $table->date('prev_date')->nullable();
+            $table->string('periods')->nullable();
+            $table->float('volume')->nullable();
+            $table->float('prev_volume')->nullable();
+            $table->float('summa')->nullable();
+            $table->float('mileage')->nullable();
+            $table->float('prev_mileage')->nullable();
+            $table->float('mileage_consumption')->nullable();
+            $table->string('product')->nullable();
+            $table->string('carno')->nullable();
+            $table->string('driver')->nullable();
+            $table->float('bakas_tilpums')->nullable();
+            $table->float('paterins')->nullable();
+            $table->float('motora_tilpums')->nullable();
+            $table->string('automarka')->nullable();
+            $table->string('atbildigais')->nullable();
             $table->timestamps();
         });
     }
