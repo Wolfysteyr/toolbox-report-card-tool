@@ -42,6 +42,7 @@ export default function Report() {
 
     // Fetch available combinations on mount
     useEffect(() => {
+        document.title = "Logbook";
         async function fetchAvailableData() {
             try {
                 const res  = await fetch("/api/available-data");

@@ -49,14 +49,14 @@ class ReportController extends Controller
     {
         // TODO: implement Porter API call
         // return Http::get('http://porter.vtl.lv/api/template/...')->body();
-        
         return null;
     }
 
-    public function fetchDataFromLocal($car, $month, $year){
+    public function fetchDataFromLocal($car, $month, $year)
+    {
         $rows = Report::where('carno', $car)
-            ->whereRaw("strftime('%m', prev_date) = ?", [str_pad($month, 2, '0', STR_PAD_LEFT)])
-            ->whereRaw("strftime('%Y', prev_date) = ?", [(string)$year])
+            ->whereMonth('prev_date', $month)
+            ->whereYear('prev_date', $year)
             ->orderBy('prev_date')
             ->get();
 
@@ -74,14 +74,11 @@ class ReportController extends Controller
         $fuelStart = $first->prev_volume;
         $fuelEnd   = $last->volume;
         $received  = $rows->sum(fn($r) => $r->volume - $r->prev_volume);
-        
-
         $used      = round($fuelStart + $received - $fuelEnd, 2);
 
         $factualCons = $distance > 0
             ? round(($used / $distance) * 100, 2)
             : 0;
-
 
         $log = $rows->map(fn($r) => [
             'date'    => $r->prev_date,
@@ -110,13 +107,27 @@ class ReportController extends Controller
             'used'           => $used,
             'fuel_end'       => round($fuelEnd, 2),
             'factual_cons'   => $factualCons,
-            'log'            => $log,
+            'log'            => $log->values()->toArray(),
         ]);
+    }
+
+    public function fetchAllForPeriod($month, $year)
+    {
+        $cars = Report::whereMonth('prev_date', $month)
+            ->whereYear('prev_date', $year)
+            ->distinct()
+            ->pluck('carno');
+
+        $reports = $cars->map(fn($car) =>
+            json_decode($this->fetchDataFromLocal($car, $month, $year)->getContent(), true)
+        )->filter()->values();
+
+        return response()->json($reports);
     }
 
     public function getAvailableData()
     {
-        $rows = Report::selectRaw("strftime('%Y', prev_date) as year, strftime('%m', prev_date) as month, carno")
+        $rows = Report::selectRaw("YEAR(prev_date) as year, MONTH(prev_date) as month, carno")
             ->distinct()
             ->orderByRaw("year, month, carno")
             ->get()
@@ -127,19 +138,5 @@ class ReportController extends Controller
             ]);
 
         return response()->json($rows);
-    }
-
-    public function fetchAllFromPeriod($month, $year)
-    {
-        $cars = Report::whereRaw("strftime('%m', prev_date) = ?", [str_pad($month, 2, '0', STR_PAD_LEFT)])
-            ->whereRaw("strftime('%Y', prev_date) = ?", [(string)$year])
-            ->distinct()
-            ->pluck('carno');
-
-        $reports = $cars->map(fn($car) =>
-            json_decode($this->fetchDataFromLocal($car, $month, $year)->getContent(), true)
-        )->filter()->values();
-
-        return response()->json($reports);
     }
 }
