@@ -3,19 +3,18 @@ import laravel from 'laravel-vite-plugin';
 import {
     defineConfig
 } from 'vite';
-import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.tsx'],
-            ssr: 'resources/js/ssr.jsx',
+            input: 'react-front/src/main.jsx', 
             refresh: true,
         }),
         react(),
-        tailwindcss(),
     ],
-    esbuild: {
-        jsx: 'automatic',
+    resolve: {
+        alias: {
+            '@': '/react-front/src',
+        },
     },
 });

@@ -5,7 +5,7 @@ use Inertia\Inertia;
 
 
 Route::get('/', function () {
-    return Inertia::render('dashboard'); 
+    return Inertia::render('Report'); 
 });
 
 
