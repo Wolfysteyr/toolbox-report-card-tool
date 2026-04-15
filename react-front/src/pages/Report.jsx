@@ -205,7 +205,25 @@ export default function Report() {
 
                     <div className="selection-field">
                         <label htmlFor="year">gads</label>
-                        <select id="year" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+                        <select 
+                            id="year" 
+                            value={selectedYear} 
+                            onChange={e => {
+                                const newYear = e.target.value;
+                                setSelectedYear(newYear);
+
+                                // Find the first month available for this specific new year
+                                const months = [...new Set(availableData.filter(r => r.year == newYear).map(r => parseInt(r.month)))].sort((a, b) => a - b);
+                                const firstMonth = months[0];
+                                
+                                if (firstMonth) {
+                                    setSelectedMonth(firstMonth);
+                                    // Now find the first car for that year + that month
+                                    const cars = [...new Set(availableData.filter(r => r.year == newYear && r.month == firstMonth).map(r => r.carno))].sort();
+                                    setSelectedCar(cars[0]);
+                                }
+                            }}
+                        >
                             {availableYears.map(y => (
                                 <option key={y} value={y}>{y}</option>
                             ))}
@@ -214,7 +232,22 @@ export default function Report() {
 
                     <div className="selection-field">
                         <label htmlFor="month">mēnesis</label>
-                        <select id="month" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
+                        <select 
+                            id="month" 
+                            value={selectedMonth} 
+                            onChange={e => {
+                                const newMonth = e.target.value;
+                                setSelectedMonth(newMonth);
+
+                                // Try to keep the same car, otherwise pick the first one available in this month
+                                const cars = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == newMonth).map(r => r.carno))].sort();
+                                
+                                if (!cars.includes(selectedCar)) {
+                                    setSelectedCar(cars[0]);
+                                }
+                                // If cars.includes(selectedCar), we do NOTHING. This keeps the selection.
+                            }}
+                        >
                             {availableMonths.map(m => (
                                 <option key={m} value={m}>{MONTH_NAMES[m]}</option>
                             ))}
