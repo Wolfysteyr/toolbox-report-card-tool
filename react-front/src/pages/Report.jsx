@@ -7,7 +7,7 @@ import CarReportPDF from "./CarReportPDF";
 import logoUrl from "../assets/vtl-logo-1.png";
 import Modal from "react-modal";
 
-Modal.setAppElement('#root');
+Modal.setAppElement('#app');
 
 const MONTH_NAMES = {
     1:  "Janvaris",
