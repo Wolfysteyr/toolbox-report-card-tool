@@ -64,6 +64,11 @@ body {
   border-bottom-right-radius: 12px;  
 }
 .menu .sync-button-dropdown{
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border: solid 1px #333;
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;  
 }
