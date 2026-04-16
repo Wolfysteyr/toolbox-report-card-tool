@@ -16,7 +16,7 @@ class ReportController extends Controller
         if (!$api_key) return response()->json(['message' => 'Nav API atslēgas!'], 400);
 
         // Update the URL to the correct endpoint provided by Porter
-        $url = "http://localhost:80/api/templates/Degvielas/json";
+        $url = "http://localhost:80/api/templates/celazimes/json";
         $response = Http::withHeaders(['X-API-Key' => $api_key])->get($url);
 
         if ($response->failed()) return response()->json(['message' => 'Porter sync failed.'], 500);
