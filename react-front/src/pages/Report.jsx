@@ -123,6 +123,7 @@ export default function Report() {
         if(!apiKey){
             alert("Nav API atslēga!");
             setDropdownOpen(true);
+            return;
         }
         setSyncing(true);
         try {
