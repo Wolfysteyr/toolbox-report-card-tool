@@ -57,6 +57,7 @@ export default function Report() {
                 const res  = await fetch("/api/get-api-key");
                 const data = await res.json();
                 setApiKey(data.api_key);
+                console.log("Fetched API key: " . apiKey);
             } catch (err) {
                 console.error("Failed to fetch API key:", err);
             }
@@ -180,7 +181,7 @@ export default function Report() {
                     </button>
                     {dropdownOpen && (
                         <div className="sync-dropdown">
-                            <input type="text" name="api_key" id="api_key" placeholder="API atslēga" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+                            <input style={{color:"black"}} type="text" name="api_key" id="api_key" placeholder="API atslēga" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
                             <button onClick={handleApiKeySave} title="Saglabāt API atslēgu">
                                 <SaveIcon />
                             </button>

@@ -43,7 +43,7 @@ class ReportController extends Controller
     {
         $setting = Setting::where('key', 'porter_api_url')->first();
         $api_key = $setting ? $setting->value : null;
-        $url = "http://localhost:80/api/templates/ceļazīmes/json";
+        $url = "http://localhost:80/api/templates/celazimes/json";
         $response = Http::withHeaders(['X-API-Key' => $api_key])->get($url);
         return $response->failed() ? null : $response->body();
     }

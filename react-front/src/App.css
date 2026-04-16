@@ -233,3 +233,6 @@ footer {
   border-top-right-radius: none;
   border-bottom-right-radius: none;  
 }
+.sync-dropdown{
+  position: absolute;
+}
