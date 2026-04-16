@@ -120,6 +120,10 @@ export default function Report() {
     }, [selectedCar, selectedMonth, selectedYear]);
 
     const handleSync = async () => {
+        if(!apiKey){
+            alert("Nav API atslēga!");
+            setDropdownOpen(true);
+        }
         setSyncing(true);
         try {
             const res  = await fetch("/api/copy");
@@ -166,12 +170,13 @@ export default function Report() {
                 <button onClick={handleDownloadPDF} disabled={loading} title="Lejupielādēt atskaiti PDF formātā">
                         Lejupielādēt PDF
                 </button>
-                <button className="sync-button-dropdown" onClick={() => setDropdownOpen(!dropdownOpen)} title="Sinhronizācijas opcijas">
-                    <span>{dropdownOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}</span>
-                </button>
-                <button onClick={handleSync} disabled={syncing} title="Manuāli sinhronizēt datus">
-                    {syncing ? "Sinhronize..." : "Sinhronizet"}
-                </button>
+                <div>
+                    <button className="sync-button-dropdown" onClick={() => setDropdownOpen(!dropdownOpen)} title="Sinhronizācijas opcijas">
+                        <span>{dropdownOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}</span>
+                    </button>
+                    <button className="sync-button" onClick={handleSync} disabled={syncing} title="Manuāli sinhronizēt datus">
+                        {syncing ? "Sinhronize..." : "Sinhronizet"}
+                    </button>
                     {dropdownOpen && (
                         <div className="sync-dropdown">
                             <input type="text" name="api_key" id="api_key" placeholder="API atslēga" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
@@ -180,6 +185,8 @@ export default function Report() {
                             </button>
                         </div>
                     )}
+                </div>
+                
             </div>        
             <div className="header">
                 <img src={logo} alt="VTL logo" />
