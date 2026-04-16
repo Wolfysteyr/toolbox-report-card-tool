@@ -4,137 +4,135 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Report;
-use Illuminate\Support\Facades\Http;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Http;
 
 class ReportController extends Controller
 {
     public function copy()
     {
-        $data = $this->fetchDataFromPorter();
-        if (!$data) return response()->json(['message' => 'Failed to fetch data.'], 500);
+        $api_key = Setting::where('key', 'porter_api_key')->value('value');
+        
+        if (!$api_key) return response()->json(['message' => 'Nav API atslēgas!'], 400);
 
-        $data = json_decode($data, true);
+        // Update the URL to the correct endpoint provided by Porter
+        $url = "http://localhost:80/api/templates/Degvielas/json";
+        $response = Http::withHeaders(['X-API-Key' => $api_key])->get($url);
+
+        if ($response->failed()) return response()->json(['message' => 'Porter sync failed.'], 500);
+
+        $data = json_decode($response->body(), true);
 
         foreach ($data as $item) {
             Report::updateOrCreate(
                 ['carno' => $item['carno'], 'prev_date' => $item['prev_date'], 'volume' => $item['volume']],
                 [
-                    'periods'             => $item['periods'],
-                    'prev_volume'         => $item['prev_volume'],
-                    'summa'               => $item['summa'],
-                    'mileage'             => $item['mileage'],
-                    'prev_mileage'        => $item['prev_mileage'],
-                    'mileage_consumption' => $item['mileage_consumption'],
-                    'product'             => $item['product'],
-                    'driver'              => $item['driver'],
-                    'bakas_tilpums'       => $item['bakas_tilpums'],
-                    'paterins'            => $item['paterins'],
-                    'motora_tilpums'      => $item['motora_tilpums'],
-                    'automarka'           => $item['automarka'],
-                    'atbildigais'         => $item['atbildigais'],
+                    'periods'             => $item['periods'] ?? '',
+                    'prev_volume'         => $item['prev_volume'] ?? 0,
+                    'summa'               => $item['summa'] ?? 0,
+                    'mileage'             => $item['mileage'] ?? 0,
+                    'prev_mileage'        => $item['prev_mileage'] ?? 0,
+                    'mileage_consumption' => $item['mileage_consumption'] ?? 0,
+                    'product'             => $item['product'] ?? '',
+                    'driver'              => $item['driver'] ?? '',
+                    'bakas_tilpums'       => $item['bakas_tilpums'] ?? 0,
+                    'paterins'            => $item['paterins'] ?? 0,
+                    'motora_tilpums'      => $item['motora_tilpums'] ?? '',
+                    'automarka'           => $item['automarka'] ?? '',
+                    'atbildigais'         => $item['atbildigais'] ?? '',
                 ]
             );
         }
-        return response()->json(['message' => 'Data synced successfully.']);
-    }
-
-    public function fetchDataFromPorter()
-    {
-        $setting = Setting::where('key', 'porter_api_url')->first();
-        $api_key = $setting ? $setting->value : null;
-        $url = "http://localhost:80/api/templates/celazimes/json";
-        $response = Http::withHeaders(['X-API-Key' => $api_key])->get($url);
-        return $response->failed() ? null : $response->body();
-    }
-
-    public function updateApiKey(Request $request)
-    {
-        $request->validate(['api_key' => 'required|string']);
-
-        Setting::updateOrCreate(
-            ['key' => 'porter_api_key'],
-            ['value' => $request->api_key]
-        );
-
-        return response()->json(['message' => 'API atslēga saglabāta.']);
-    }
-
-    public function getApiKey()
-    {
-        $setting = Setting::where('key', 'porter_api_key')->first();
-        return response()->json(['api_key' => $setting ? $setting->value : null]);
+        return response()->json(['message' => 'Dati veiksmīgi sinhronizēti.']);
     }
 
     /**
-     * Optimized Bulk Fetcher for Production
+     * The Missing Bridge Method for Report.jsx
      */
+    public function fetchDataFromLocal($car, $month, $year)
+    {
+        $rows = Report::where('carno', $car)
+            ->whereMonth('prev_date', $month)
+            ->whereYear('prev_date', $year)
+            ->orderBy('prev_date')
+            ->get();
+
+        if ($rows->isEmpty()) return response()->json(null);
+
+        // We use a private helper to ensure the format matches fetchAllForPeriod
+        return response()->json($this->formatReport($rows, $car));
+    }
+
     public function fetchAllForPeriod($month, $year)
     {
-        $allRows = Report::whereMonth('prev_date', $month)
+        $all = Report::whereMonth('prev_date', $month)
             ->whereYear('prev_date', $year)
             ->orderBy('prev_date')
             ->get()
             ->groupBy('carno');
 
-        $reports = $allRows->map(function ($rows, $carno) {
-            $first = $rows->first();
-            $last  = $rows->last();
-
-            $odoStart = $first->prev_mileage;
-            $odoEnd   = $last->mileage;
-            $distance = $odoEnd - $odoStart;
-            $fuelStart = $first->prev_volume;
-            $fuelEnd   = $last->volume;
-            $received  = $rows->sum('volume');
-            $used      = round($fuelStart + $received - $fuelEnd, 2);
-            $factualCons = $distance > 0 ? round(($used / $distance) * 100, 2) : 0;
-
-            return [
-                'automarka'      => $first->automarka,
-                'carno'          => $carno,
-                'motora_tilpums' => $first->motora_tilpums,
-                'product'        => $first->product,
-                'bakas_tilpums'  => $first->bakas_tilpums,
-                'paterins'       => $first->paterins,
-                'driver'         => $first->driver,
-                'atbildigais'    => $first->atbildigais,
-                'period_start'   => $first->prev_date,
-                'period_end'     => $last->prev_date,
-                'odo_start'      => $odoStart,
-                'odo_end'        => $odoEnd,
-                'distance'       => $distance,
-                'fuel_start'     => $fuelStart,
-                'received'       => $received,
-                'used'           => $used,
-                'fuel_end'       => round($fuelEnd, 2),
-                'factual_cons'   => $factualCons,
-                'log'            => $rows->map(fn($r) => [
-                    'date'    => $r->prev_date,
-                    'product' => $r->product,
-                    'amount'  => $r->volume,
-                    'summa'   => $r->summa,
-                    'driver'  => $r->driver,
-                ])->values(),
-            ];
-        })->values();
+        $reports = $all->map(fn($rows, $car) => $this->formatReport($rows, $car))->values();
 
         return response()->json($reports);
     }
 
+    private function formatReport($rows, $car)
+    {
+        $first = $rows->first();
+        $last = $rows->last();
+        
+        $received = $rows->sum('volume');
+        $fuelStart = $first->prev_volume;
+        $fuelEnd = $last->volume;
+        $used = round($fuelStart + $received - $fuelEnd, 2);
+        $distance = $last->mileage - $first->prev_mileage;
+
+        return [
+            'automarka'      => $first->automarka,
+            'carno'          => $car,
+            'motora_tilpums' => $first->motora_tilpums,
+            'product'        => $first->product,
+            'bakas_tilpums'  => $first->bakas_tilpums,
+            'paterins'       => $first->paterins,
+            'driver'         => $first->driver,
+            'atbildigais'    => $first->atbildigais,
+            'period_start'   => $first->prev_date,
+            'period_end'     => $last->prev_date,
+            'odo_start'      => $first->prev_mileage,
+            'odo_end'        => $last->mileage,
+            'distance'       => $distance,
+            'fuel_start'     => round($fuelStart, 2),
+            'received'       => round($received, 2),
+            'used'           => $used,
+            'fuel_end'       => round($fuelEnd, 2),
+            'factual_cons'   => $distance > 0 ? round(($used / $distance) * 100, 2) : 0,
+            'log'            => $rows->map(fn($r) => [
+                'date'    => $r->prev_date,
+                'product' => $r->product,
+                'amount'  => $r->volume,
+                'summa'   => $r->summa,
+                'driver'  => $r->driver,
+            ])->values(),
+        ];
+    }
+
     public function getAvailableData()
     {
-        // MySQL Specific Syntax
-        $rows = Report::selectRaw("YEAR(prev_date) as year, MONTH(prev_date) as month, carno")
+        return Report::selectRaw("YEAR(prev_date) as year, MONTH(prev_date) as month, carno")
             ->distinct()
-            ->orderByRaw("year, month, carno")
-            ->get()
-            ->map(fn($r) => [
-                'year'  => (int) $r->year,
-                'month' => (int) $r->month,
-                'carno' => $r->carno,
-            ]);
+            ->orderByRaw("year DESC, month DESC, carno ASC")
+            ->get();
+    }
 
-        return response()->json($rows);
+    public function updateApiKey(Request $request)
+    {
+        Setting::updateOrCreate(['key' => 'porter_api_key'], ['value' => $request->api_key]);
+        return response()->json(['message' => 'API atslēga saglabāta.']);
+    }
+
+    public function getApiKey()
+    {
+        $val = Setting::where('key', 'porter_api_key')->value('value');
+        return response()->json(['api_key' => $val]);
     }
 }
