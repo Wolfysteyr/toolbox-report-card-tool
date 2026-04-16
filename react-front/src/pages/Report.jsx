@@ -174,7 +174,7 @@ export default function Report() {
                 </button>
                 <div>
                     <button className="sync-button-dropdown" onClick={() => setDropdownOpen(!dropdownOpen)} title="Sinhronizācijas opcijas">
-                        <span>{dropdownOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}</span>
+                        <span>{dropdownOpen ? <ArrowDropUpIcon style={{width:"14px"}}/> : <ArrowDropDownIcon style={{width:"14px"}}/>}</span>
                     </button>
                     <button className="sync-button" onClick={handleSync} disabled={syncing} title="Manuāli sinhronizēt datus">
                         {syncing ? "Sinhronize..." : "Sinhronizet"}
@@ -183,7 +183,7 @@ export default function Report() {
                         <div className="sync-dropdown">
                             <input style={{color:"black"}} type="text" name="api_key" id="api_key" placeholder="API atslēga" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
                             <button onClick={handleApiKeySave} title="Saglabāt API atslēgu">
-                                <SaveIcon />
+                                <SaveIcon style={{width:"14px"}} />
                             </button>
                         </div>
                     )}

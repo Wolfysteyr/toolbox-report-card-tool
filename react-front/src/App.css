@@ -45,7 +45,7 @@ body {
   border-bottom-style: dashed;
 }
 
-.menu button{
+.menu button:not(.sync-button, .sync-button-dropdown){
   color: #fff;
   font-size: 14px;
   cursor: pointer;
@@ -53,6 +53,28 @@ body {
   border: solid 1px #333;
   border-radius: 12px;
 }
+
+.menu .sync-button{
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border: solid 1px #333;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;  
+}
+.menu .sync-button-dropdown{
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;  
+}
+.menu .sync-dropdown{
+  position: absolute;
+  background-color: #444;
+  border: #333 1px solid;
+  border-radius: 2px;
+  width: max-content;
+}
+
 /* MAIN LAYOUT */
 .body {
   display: grid;
@@ -225,14 +247,3 @@ footer {
   position: fixed;
 }
 
-.sync-button{
-  border-top-left-radius: none;
-  border-bottom-left-radius: none;  
-}
-.sync-button-dropdown{
-  border-top-right-radius: none;
-  border-bottom-right-radius: none;  
-}
-.sync-dropdown{
-  position: absolute;
-}
