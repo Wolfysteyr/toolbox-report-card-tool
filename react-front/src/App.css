@@ -75,6 +75,7 @@ body {
 .menu .sync-dropdown{
   position: absolute;
   background-color: #444;
+  margin-top: 40px;
   border: #333 1px solid;
   border-radius: 2px;
   width: max-content;

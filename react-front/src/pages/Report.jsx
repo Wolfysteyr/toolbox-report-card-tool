@@ -172,7 +172,7 @@ export default function Report() {
                 <button onClick={handleDownloadPDF} disabled={loading} title="Lejupielādēt atskaiti PDF formātā">
                         Lejupielādēt PDF
                 </button>
-                <div>
+                <div style={{display:"flex"}}>
                     <button className="sync-button-dropdown" onClick={() => setDropdownOpen(!dropdownOpen)} title="Sinhronizācijas opcijas">
                         <span>{dropdownOpen ? <ArrowDropUpIcon style={{width:"14px"}}/> : <ArrowDropDownIcon style={{width:"14px"}}/>}</span>
                     </button>
