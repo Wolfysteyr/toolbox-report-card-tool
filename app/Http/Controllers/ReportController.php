@@ -60,6 +60,12 @@ class ReportController extends Controller
         return response()->json(['message' => 'API atslēga saglabāta.']);
     }
 
+    public function getApiKey()
+    {
+        $setting = Setting::where('key', 'porter_api_key')->first();
+        return response()->json(['api_key' => $setting ? $setting->value : null]);
+    }
+
     /**
      * Optimized Bulk Fetcher for Production
      */

@@ -19,3 +19,7 @@ Route::get('/available-data', [ReportController::class, 'getAvailableData']);
 
 // route to fetch all data for a specific month/year (for report generation)
 Route::get('/fetch-all/{month}/{year}', [ReportController::class, 'fetchAllFromPeriod']);
+
+// API key related routes
+Route::post('/update-api-key', [ReportController::class, 'updateApiKey']);
+Route::get('/get-api-key', [ReportController::class, 'getApiKey']);

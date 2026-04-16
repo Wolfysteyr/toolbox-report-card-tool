@@ -7,6 +7,11 @@ import CarReportPDF from "./CarReportPDF";
 import logoUrl from "../assets/vtl-logo-1.png";
 import Modal from "react-modal";
 
+// Material UI icons
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import SaveIcon from '@mui/icons-material/Save';
+
 Modal.setAppElement('#root');
 
 const MONTH_NAMES = {
@@ -26,6 +31,7 @@ const MONTH_NAMES = {
 
 export default function Report() {
     const [availableData, setAvailableData] = useState([]);
+    const [apiKey, setApiKey] = useState("");
 
     const [selectedCar, setSelectedCar]     = useState("");
     const [selectedMonth, setSelectedMonth] = useState("");
@@ -40,32 +46,59 @@ export default function Report() {
     const availableMonths = [...new Set(availableData.filter(r => r.year == selectedYear).map(r => parseInt(r.month)))].sort((a, b) => a - b);
     const availableCars   = [...new Set(availableData.filter(r => r.year == selectedYear && r.month == selectedMonth).map(r => r.carno))].sort();
 
+
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     // Fetch available combinations on mount
-    // useEffect(() => {
-    //     document.title = "Logbook";
-    //     async function fetchAvailableData() {
-    //         try {
-    //             const res  = await fetch("/api/available-data");
-    //             const data = await res.json();
-    //             setAvailableData(data);
+    useEffect(() => {
+        document.title = "Logbook";
 
-    //             const years  = [...new Set(data.map(r => r.year))].sort();
-    //             const year   = years[0];
-    //             const months = [...new Set(data.filter(r => r.year == year).map(r => parseInt(r.month)))].sort((a, b) => a - b);
-    //             const month  = months[0];
-    //             const cars   = [...new Set(data.filter(r => r.year == year && r.month == month).map(r => r.carno))].sort();
+        async function fetchApiKey(){
+            try {
+                const res  = await fetch("/api/get-api-key");
+                const data = await res.json();
+                setApiKey(data.api_key);
+            } catch (err) {
+                console.error("Failed to fetch API key:", err);
+            }
+        }
+        async function fetchAvailableData() {
+            try {
+                const res  = await fetch("/api/available-data");
+                const data = await res.json();
+                setAvailableData(data);
 
-    //             setSelectedYear(year);
-    //             setSelectedMonth(month);
-    //             setSelectedCar(cars[0]);
-    //         } catch (err) {
-    //             console.error("Failed to fetch available data:", err);
-    //         }
-    //     }
-    //     fetchAvailableData();
-    // }, []);
+                const years  = [...new Set(data.map(r => r.year))].sort();
+                const year   = years[0];
+                const months = [...new Set(data.filter(r => r.year == year).map(r => parseInt(r.month)))].sort((a, b) => a - b);
+                const month  = months[0];
+                const cars   = [...new Set(data.filter(r => r.year == year && r.month == month).map(r => r.carno))].sort();
 
-    
+                setSelectedYear(year);
+                setSelectedMonth(month);
+                setSelectedCar(cars[0]);
+            } catch (err) {
+                console.error("Failed to fetch available data:", err);
+            }
+        }
+        fetchApiKey();
+        fetchAvailableData();
+    }, []);
+
+    const handleApiKeySave = async () => {
+        try {
+            const res = await fetch("/api/update-api-key", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ api_key: apiKey })
+            });
+            const data = await res.json();
+            alert(data.message);
+        } catch (err) {
+            console.error("Failed to save API key:", err);
+            alert("Neizdevās saglabāt API atslēgu.");
+        }
+    };
+
     // Fetch report whenever final selection is complete
     useEffect(() => {
         if (!selectedCar || !selectedMonth || !selectedYear) return;
@@ -133,9 +166,20 @@ export default function Report() {
                 <button onClick={handleDownloadPDF} disabled={loading} title="Lejupielādēt atskaiti PDF formātā">
                         Lejupielādēt PDF
                 </button>
+                <button className="sync-button-dropdown" onClick={() => setDropdownOpen(!dropdownOpen)} title="Sinhronizācijas opcijas">
+                    <span>{dropdownOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}</span>
+                </button>
                 <button onClick={handleSync} disabled={syncing} title="Manuāli sinhronizēt datus">
                     {syncing ? "Sinhronize..." : "Sinhronizet"}
                 </button>
+                    {dropdownOpen && (
+                        <div className="sync-dropdown">
+                            <input type="text" name="api_key" id="api_key" placeholder="API atslēga" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+                            <button onClick={handleApiKeySave} title="Saglabāt API atslēgu">
+                                <SaveIcon />
+                            </button>
+                        </div>
+                    )}
             </div>        
             <div className="header">
                 <img src={logo} alt="VTL logo" />
