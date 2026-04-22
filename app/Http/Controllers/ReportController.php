@@ -100,7 +100,7 @@ class ReportController extends Controller
             'paterins'       => $first->paterins,
             'driver'         => $first->driver,
             'atbildigais'    => $first->atbildigais,
-            'period_start'   => $first->prev_date,
+            'period_start'   => $first->periods,
             'period_end'     => $last->prev_date,
             'odo_start'      => $first->prev_mileage,
             'odo_end'        => $last->mileage,
