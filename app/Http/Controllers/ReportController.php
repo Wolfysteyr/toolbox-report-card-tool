@@ -25,7 +25,7 @@ class ReportController extends Controller
 
         foreach ($data as $item) {
             Report::updateOrCreate(
-                ['carno' => $item['carno'], 'prev_date' => $item['prev_date'], 'volume' => $item['volume']],
+                ['carno' => $item['carno'], 'dated' => $item['dated'], 'volume' => $item['volume']],
                 [
                     'periods'             => $item['periods'] ?? '',
                     'prev_volume'         => $item['prev_volume'] ?? 0,
@@ -52,9 +52,9 @@ class ReportController extends Controller
     public function fetchDataFromLocal($car, $month, $year)
     {
         $rows = Report::where('carno', $car)
-            ->whereMonth('prev_date', $month)
-            ->whereYear('prev_date', $year)
-            ->orderBy('prev_date')
+            ->whereMonth('dated', $month)
+            ->whereYear('dated', $year)
+            ->orderBy('dated')
             ->get();
 
         if ($rows->isEmpty()) return response()->json(null);
@@ -101,7 +101,7 @@ class ReportController extends Controller
             'driver'         => $first->driver,
             'atbildigais'    => $first->atbildigais,
             'period_start'   => $first->periods,
-            'period_end'     => $last->prev_date,
+            'period_end'     => $last->dated,
             'odo_start'      => $first->prev_mileage,
             'odo_end'        => $last->mileage,
             'distance'       => $distance,
@@ -111,7 +111,7 @@ class ReportController extends Controller
             'fuel_end'       => round($fuelEnd, 2),
             'factual_cons'   => $distance > 0 ? round(($used / $distance) * 100, 2) : 0,
             'log'            => $rows->map(fn($r) => [
-                'date'    => $r->prev_date,
+                'date'    => $r->dated,
                 'product' => $r->product,
                 'amount'  => $r->volume,
                 'summa'   => $r->summa,
@@ -122,7 +122,7 @@ class ReportController extends Controller
 
     public function getAvailableData()
     {
-        return Report::selectRaw("YEAR(prev_date) as year, MONTH(prev_date) as month, carno")
+        return Report::selectRaw("YEAR(dated) as year, MONTH(dated) as month, carno")
             ->distinct()
             ->orderByRaw("year DESC, month DESC, carno ASC")
             ->get();

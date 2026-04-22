@@ -8,6 +8,7 @@ class Report extends Model
 {
     protected $table = 'energy_local';
     protected $fillable = [
+        'dated',
         'prev_date',
         'periods',
         'volume',
