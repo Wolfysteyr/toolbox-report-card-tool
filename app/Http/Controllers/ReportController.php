@@ -65,9 +65,9 @@ class ReportController extends Controller
 
     public function fetchAllForPeriod($month, $year)
     {
-        $all = Report::whereMonth('prev_date', $month)
-            ->whereYear('prev_date', $year)
-            ->orderBy('prev_date')
+        $all = Report::whereMonth('dated', $month)
+            ->whereYear('dated', $year)
+            ->orderBy('dated')
             ->get()
             ->groupBy('carno');
 
