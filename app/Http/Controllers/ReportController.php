@@ -80,12 +80,16 @@ class ReportController extends Controller
     {
         $first = $rows->first();
         $last = $rows->last();
+
+
+         // Only fuel rows for calculations
+        $fuelRows = $rows->filter(fn($r) => !str_contains(strtolower($r->product), 'VĒJSTIKLU ŠĶIDRUMS'));
         
-        $received = $rows->sum('volume');
-        $fuelStart = $first->prev_volume;
-        $fuelEnd = $last->volume;
-        $used = round($fuelStart + $received - $fuelEnd, 2);
-        $distance = $last->mileage - $first->prev_mileage;
+        $received  = $fuelRows->sum('volume');
+        $fuelStart = $fuelRows->first()?->prev_volume ?? 0;
+        $fuelEnd   = $fuelRows->last()?->volume ?? 0;
+        $used      = round($fuelStart + $received - $fuelEnd, 2);
+        $distance  = $last->mileage - $first->prev_mileage;
 
         return [
             'automarka'      => $first->automarka,
