@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('energy_locals', function (Blueprint $table) {
+        Schema::table('energy_local', function (Blueprint $table) {
             $table->date('dated')->before('prev_date');
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('energy_locals', function (Blueprint $table) {
+        Schema::table('energy_local', function (Blueprint $table) {
             //
         });
     }
