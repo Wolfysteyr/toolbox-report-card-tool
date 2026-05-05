@@ -90,15 +90,12 @@ class ReportController extends Controller
 
         $distance     = $last->mileage - $first->prev_mileage;
 
-        // create proper carbon instances for the period start and end
-        $periodStart = \Carbon\Carbon::parse($first->periods);
-        $periodEnd   = $periodStart->copy()->endOfMonth();
-
 
         // get the amount of days in the period
-        $odoPeriodDays = $periodStart->diffInDays($periodEnd) + 1; // add 1 to include the end day in the calculation
+        $odoPeriodDays = \Carbon\Carbon::parse($first->periods)->daysInMonth;
         // get the average km/day based by dividing distance by the day number of the last fillup in the period
-        $lastFillupDay = \Carbon\Carbon::parse($last->dated)->diffInDays($periodStart) + 1; // add 1 to include the fillup day in the calculation
+        $lastFillupDay = \Carbon\Carbon::parse($last->dated)->day;
+        
         $avgKmPerDay   = $lastFillupDay > 0 ? ($distance / $lastFillupDay) : 2;
         // then we calculate the amount of km that we need to add to the existing odo end to get the estimated odo end for the period
         // round to 0 decimals since odo readings are whole numbers
