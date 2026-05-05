@@ -117,7 +117,7 @@ class ReportController extends Controller
 
             $fakeDistance = $distance + $estimatedOdoEnd; // this is the total of both actual and fake distance
             $fakeUsed = round($factualCons * $fakeDistance / 100, 2); // fake fuel used calculated based on estimated odo end
-            $fakeFuelEnd = round($fuelStart + $received - $fakeUsed, 2); // fake fuel end calculated based on fake fuel used
+            $fakeFuelEnd = round($fuelEnd - ($fakeUsed - $used), 2); // fake fuel end calculated based on fake fuel used
         }
 
 
