@@ -101,7 +101,7 @@ class ReportController extends Controller
             'driver'         => $first->driver,
             'atbildigais'    => $first->atbildigais,
             'period_start'   => $first->periods,
-            'period_end'     => $last->dated,
+            'period_end'     => \Carbon\Carbon::parse($last->dated)->endOfMonth()->toDateString(),
             'odo_start'      => $first->prev_mileage,
             'odo_end'        => $last->mileage,
             'distance'       => $distance,
