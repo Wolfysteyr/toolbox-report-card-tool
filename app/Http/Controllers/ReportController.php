@@ -87,30 +87,56 @@ class ReportController extends Controller
         
         $received  = $fuelRows->sum('volume');
         $fuelStart = $fuelRows->first()?->prev_volume ?? 0;
+
+        // odo end is now calculated based on average km/day for the period, since we don't have a guaranteed end-of-month fillup
+        // get the amount of days in the period
+        $odoPeriodDays = \Carbon\Carbon::parse($first->periods)->diffInDays(\Carbon\Carbon::parse($first->periods)->endOfMonth());
+        // get the average km/day based by dividing distance by the day number of the last fillup in the period
+        $lastFillupDay = \Carbon\Carbon::parse($last->dated)->day;
+        $avgKmPerDay   = $lastFillupDay > 0 ? ($distance / $lastFillupDay) : 0;
+        // then we calculate the amount of km that we need to add to the existing odo end to get the estimated odo end for the period
+        // round to 0 decimals since odo readings are whole numbers
+        // also subtract the last fillup day from the odo period days to get the remaining days in the period after the last fillup, since we only want to estimate the odo end for those remaining days
+        $estimatedOdoEnd = round($avgKmPerDay * $odoPeriodDays-$lastFillupDay, 0);
+
+        $distance     = $last->mileage - $first->prev_mileage;
+        $fakeDistance = $distance + $estimatedOdoEnd;
+
+        // we need to calculate the fuel consumed and fuel_end using the new estimated odo end
         $fuelEnd   = $fuelRows->last()?->volume ?? 0;
-        $used      = round($fuelStart + $received - $fuelEnd, 2);
-        $distance  = $last->mileage - $first->prev_mileage;
+        $used        = round($fuelStart + $received - $fuelEnd, 2); // fuel used based on actual data we have
+
+        $factualCons = $distance > 0 ? round(($used / $distance) * 100, 2) : 0;
+        $fakeUsed    = round($factualCons * $fakeDistance / 100, 2) + $used; // fake fuel used calculated based on estimated odo end
+        $fakeFuelEnd = round($fuelEnd - ($fakeUsed - $used), 2); // fake fuel end calculated based on fake fuel used (removing the extra fuel used that we added in fake used to get the fuel end)
+
+
 
         return [
-            'automarka'      => $first->automarka,
-            'carno'          => $car,
-            'motora_tilpums' => $first->motora_tilpums,
-            'product'        => $first->product,
-            'bakas_tilpums'  => $first->bakas_tilpums,
-            'paterins'       => $first->paterins,
-            'driver'         => $first->driver,
-            'atbildigais'    => $first->atbildigais,
-            'period_start'   => $first->periods,
-            'period_end'     => \Carbon\Carbon::parse($last->dated)->endOfMonth()->toDateString(),
-            'odo_start'      => $first->prev_mileage,
-            'odo_end'        => $last->mileage,
-            'distance'       => $distance,
-            'fuel_start'     => round($fuelStart, 2),
-            'received'       => round($received, 2),
-            'used'           => $used,
-            'fuel_end'       => round($fuelEnd, 2),
-            'factual_cons'   => $distance > 0 ? round(($used / $distance) * 100, 2) : 0,
-            'log'            => $rows->map(fn($r) => [
+            'automarka'          => $first->automarka,
+            'carno'              => $car,
+            'motora_tilpums'     => $first->motora_tilpums,
+            'product'            => $first->product,
+            'bakas_tilpums'      => $first->bakas_tilpums,
+            'paterins'           => $first->paterins,
+            'driver'             => $first->driver,
+            'atbildigais'        => $first->atbildigais,
+            'period_start'       => $first->periods,
+            'period_last_fillup' => $last->dated,
+            'period_end'         => \Carbon\Carbon::parse($first->periods)->endOfMonth()->toDateString(),
+            'odo_start'          => $first->prev_mileage,
+            'odo_last_fillup'    => $last->mileage,
+            'odo_end'            => $last->mileage + $estimatedOdoEnd,
+            'distance'           => $distance,
+            'fake_distance'     => $fakeDistance, // this is the distance calculation based on estimated odo end
+            'fuel_start'         => round($fuelStart, 2),
+            'received'           => round($received, 2),
+            'used'               => $used,
+            'fake_used'           => $fakeUsed, // this is the fuel used calculation based on estimated odo end
+            'fuel_end'           => round($fuelEnd, 2),
+            'fake_fuel_end'       => $fakeFuelEnd, // this is the fuel end calculation based on estimated odo end
+            'factual_cons'       => $factualCons,
+            'log'                => $rows->map(fn($r) => [
                 'date'    => $r->dated,
                 'product' => $r->product,
                 'amount'  => $r->volume,
