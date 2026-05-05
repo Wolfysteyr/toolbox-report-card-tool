@@ -284,7 +284,7 @@ export default function Report() {
                             <input type="text" id="odoStart" name="odoStart" disabled value={report?.odo_start ?? ""}/>
                         </div>
                         <div className="period-field">
-                            <label htmlFor="lastFillOdo">Pēdējās uzpilde (km)</label>
+                            <label htmlFor="lastFillOdo">Pēdējā uzpilde (km)</label>
                             <input type="text" id="lastFillOdo" name="lastFillOdo" disabled value={report?.odo_last_fillup ?? ""}/>
                         </div>
                         <div className="period-field">
