@@ -165,6 +165,14 @@ export default function Report() {
     } finally {
         setLoading(false);
     }
+
+    // check if fake data matches real data, if it does, remove some styling
+    if (report?.fake_used && report?.used && report.fake_used == report.used){
+        report.fake_used = null;
+    }
+    if (report?.fake_fuel_end && report?.fuel_end && report.fake_fuel_end == report.fuel_end){
+        report.fake_fuel_end = null;
+    }
 };
     return (
         <>
@@ -229,10 +237,10 @@ export default function Report() {
                         <input type="text" id="factualCarFuelCons" name="factualCarFuelCons" disabled value={report?.factual_cons ?? ""}/>
 
                         <label htmlFor="reportUsedFuel">Izlietota degviela kopā (L):</label>
-                        <input type="text" id="reportUsedFuel" name="reportUsedFuel" disabled value={report?.fake_used ?? ""} title={report?.used} style={{textDecoration: "underline", textDecorationStyle: "dashed"}}/>
+                        <input type="text" id="reportUsedFuel" name="reportUsedFuel" disabled value={report?.fake_used ? report?.fake_used : report?.used} title={report?.used} style={report?.fake_used ? {textDecoration: "underline", textDecorationStyle: "dashed"} : {}}/>
 
                         <label htmlFor="reportFuelEnd">Atlikums atgriežoties (L):</label>
-                        <input type="text" id="reportFuelEnd" name="reportFuelEnd" disabled value={report?.fake_fuel_end ?? ""} title={report?.fuel_end} style={{textDecoration: "underline", textDecorationStyle: "dashed"}}/>
+                        <input type="text" id="reportFuelEnd" name="reportFuelEnd" disabled value={report?.fake_fuel_end ? report?.fake_fuel_end : report?.fuel_end} title={report?.fuel_end} style={report?.fake_fuel_end ? {textDecoration: "underline", textDecorationStyle: "dashed"} : {}}/>
                     </div>
                 </div>
 
