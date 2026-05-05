@@ -254,6 +254,10 @@ export default function CarReportPDF({ reports, month, year, logoUrl }) {
                                 <Text style={S.infoValue}>{report.product}</Text>
                             </View>
                             <View style={S.infoRow}>
+                                <Text style={S.infoLabel}>Bakas tilpums (L):</Text>
+                                <Text style={S.infoValue}>{report.bakas_tilpums}</Text>
+                            </View>
+                            <View style={S.infoRow}>
                                 <Text style={S.infoLabel}>Vadītājs:</Text>
                                 <Text style={S.infoValue}>{report.driver}</Text>
                             </View>
@@ -278,11 +282,11 @@ export default function CarReportPDF({ reports, month, year, logoUrl }) {
                             </View>
                             <View style={S.infoRow}>
                                 <Text style={S.infoLabel}>Izlietota degviela kopa (L)</Text>
-                                <Text style={S.infoValue}>{report.used}</Text>
+                                <Text style={S.infoValue}>{report.fake_used}</Text>
                             </View>
                             <View style={S.infoRow}>
                                 <Text style={S.infoLabel}>Atlikums atgriežoties (L)</Text>
-                                <Text style={S.infoValue}>{report.fuel_end}</Text>
+                                <Text style={S.infoValue}>{report.fake_fuel_end}</Text>
                             </View>
                         </View>
                     </View>
@@ -293,6 +297,10 @@ export default function CarReportPDF({ reports, month, year, logoUrl }) {
                             <Text style={S.periodCellLabel}>Sākuma datums</Text>
                             <Text style={S.periodCellValue}>{report.period_start}</Text>
                         </View>
+                        <View>
+                            <Text style={S.periodCellLabel}>Pēdējās uzpildes datums</Text>
+                            <Text style={S.periodCellValue}>{report.period_last_fillup}</Text>
+                        </View>
                         <View style={S.periodCell}>
                             <Text style={S.periodCellLabel}>Beigu datums</Text>
                             <Text style={S.periodCellValue}>{report.period_end}</Text>
@@ -302,12 +310,20 @@ export default function CarReportPDF({ reports, month, year, logoUrl }) {
                             <Text style={S.periodCellValue}>{report.odo_start}</Text>
                         </View>
                         <View style={S.periodCell}>
+                            <Text style={S.periodCellLabel}>Pēdējā uzpilde (km)</Text>
+                            <Text style={S.periodCellValue}>{report.odo_last_fillup}</Text>
+                        </View>
+                        <View style={S.periodCell}>
                             <Text style={S.periodCellLabel}>Perioda beigās (km)</Text>
                             <Text style={S.periodCellValue}>{report.odo_end}</Text>
                         </View>
                         <View style={S.periodCellLast}>
-                            <Text style={S.periodCellLabel}>Nobrauktie km</Text>
+                            <Text style={S.periodCellLabel}>Pēc pēdējās uzpildes (km)</Text>
                             <Text style={S.periodCellValue}>{report.distance}</Text>
+                        </View>
+                        <View style={S.periodCellLast}>
+                            <Text style={S.periodCellLabel}>Perioda beigās (km)</Text>
+                            <Text style={S.periodCellValue}>{report.fake_distance ?? ""}</Text>
                         </View>
                     </View>
 
