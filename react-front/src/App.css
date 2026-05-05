@@ -161,7 +161,7 @@ body {
   background: white;
   border: 1px solid #ddd;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 12px;
   width: 800px;

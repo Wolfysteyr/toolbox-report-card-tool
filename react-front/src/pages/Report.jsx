@@ -300,11 +300,11 @@ export default function Report() {
                             <input type="text" id="odoEnd" name="odoEnd" disabled value={report?.odo_end ?? ""}/>
                         </div>
                         <div className="period-field">
-                            <label htmlFor="distance">Nobrauktie km pēc pēdējās uzpildes</label>
+                            <label htmlFor="distance">Pēc pēdējās uzpildes (km)</label>
                             <input type="text" id="distance" name="distance" disabled value={report?.distance ?? ""}/>
                         </div>
                         <div className="period-field">
-                            <label htmlFor="fakeDistance">Nobrauktie km perioda beigās</label>
+                            <label htmlFor="fakeDistance">Perioda beigās (km)</label>
                             <input type="text" id="fakeDistance" name="fakeDistance" disabled value={report?.fake_distance ?? ""}/>
                         </div>
                     </div>
@@ -347,9 +347,7 @@ export default function Report() {
                 </div>
             </div>
 
-            <footer>
-                <p>ŠIS DOKUMENTS IR PARAKSTĪTS AR DROŠU ELEKTRONISKO PARAKSTU UN SATUR LAIKA ZĪMOGU</p>
-            </footer>
+
 
             <Modal
                 isOpen={loading}
