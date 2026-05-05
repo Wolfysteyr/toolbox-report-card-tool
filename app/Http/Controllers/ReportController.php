@@ -90,27 +90,35 @@ class ReportController extends Controller
 
         $distance     = $last->mileage - $first->prev_mileage;
 
-
-        // get the amount of days in the period
-        $odoPeriodDays = \Carbon\Carbon::parse($first->periods)->daysInMonth;
-        // get the average km/day based by dividing distance by the day number of the last fillup in the period
-        $lastFillupDay = \Carbon\Carbon::parse($last->dated)->day;
-        
-        $avgKmPerDay   = $lastFillupDay > 0 ? ($distance / $lastFillupDay) : 2;
-        // then we calculate the amount of km that we need to add to the existing odo end to get the estimated odo end for the period
-        // round to 0 decimals since odo readings are whole numbers
-        // also subtract the last fillup day from the odo period days to get the remaining days in the period after the last fillup
-        $estimatedOdoEnd = round($avgKmPerDay * ($odoPeriodDays-$lastFillupDay), 0);
-
-        $fakeDistance = $distance + $estimatedOdoEnd; // this is the total of both actual and fake distance
-
-        // we need to calculate the fuel consumed and fuel_end using the new estimated odo end
+        // we need to calculate the fuel consumed and fuel_end using the actual data
         $fuelEnd     = $fuelRows->last()?->volume ?? 0;
         $used        = round($fuelStart + $received - $fuelEnd, 2); // fuel used based on actual data we have
 
         $factualCons = $distance > 0 ? round(($used / $distance) * 100, 2) : 0;
-        $fakeUsed    = round($factualCons * $fakeDistance / 100, 2); // fake fuel used calculated based on estimated odo end
-        $fakeFuelEnd = round($fuelEnd - ($fakeUsed - $used), 2); // fake fuel end calculated based on fake fuel used (removing the extra fuel used that we added in fake used to get the fuel end)
+
+        // get the amount of days in the period
+        $odoPeriodDays = \Carbon\Carbon::parse($first->periods)->daysInMonth;
+        // get the day number of the last fillup in the period
+        $lastFillupDay = \Carbon\Carbon::parse($last->dated)->day;
+
+        if ($lastFillupDay === $odoPeriodDays) {
+            // Last fillup is on the last day of the month—no estimation needed
+            $estimatedOdoEnd = 0;
+            $fakeDistance = $distance;
+            $fakeUsed = $used;
+            $fakeFuelEnd = $fuelEnd;
+        } else {
+            // Calculate estimation for remaining days
+            $avgKmPerDay   = $lastFillupDay > 0 ? ($distance / $lastFillupDay) : 2;
+            // then we calculate the amount of km that we need to add to the existing odo end to get the estimated odo end for the period
+            // round to 0 decimals since odo readings are whole numbers
+            // also subtract the last fillup day from the odo period days to get the remaining days in the period after the last fillup
+            $estimatedOdoEnd = round($avgKmPerDay * ($odoPeriodDays - $lastFillupDay), 0);
+
+            $fakeDistance = $distance + $estimatedOdoEnd; // this is the total of both actual and fake distance
+            $fakeUsed = round($factualCons * $fakeDistance / 100, 2); // fake fuel used calculated based on estimated odo end
+            $fakeFuelEnd = round($fuelStart + $received - $fakeUsed, 2); // fake fuel end calculated based on fake fuel used
+        }
 
 
 
