@@ -297,7 +297,7 @@ export default function CarReportPDF({ reports, month, year, logoUrl }) {
                             <Text style={S.periodCellLabel}>Sākuma datums</Text>
                             <Text style={S.periodCellValue}>{report.period_start}</Text>
                         </View>
-                        <View>
+                        <View style={S.periodCell}>
                             <Text style={S.periodCellLabel}>Pēdējās uzpildes datums</Text>
                             <Text style={S.periodCellValue}>{report.period_last_fillup}</Text>
                         </View>
