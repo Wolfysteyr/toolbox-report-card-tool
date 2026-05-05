@@ -354,11 +354,11 @@ export default function CarReportPDF({ reports, month, year, logoUrl }) {
                         <View style={S.summaryWrapper}>
                             <View style={S.summaryRow}>
                                 <Text style={S.summaryLabel}>Nobrauktie kilometri</Text>
-                                <Text style={S.summaryValue}>{report.distance}</Text>
+                                <Text style={S.summaryValue}>{report.fake_distance}</Text>
                             </View>
                             <View style={S.summaryRow}>
                                 <Text style={S.summaryLabel}>Patērētā degviela (litros)</Text>
-                                <Text style={S.summaryValue}>{report.used}</Text>
+                                <Text style={S.summaryValue}>{report.fake_used}</Text>
                             </View>
                             <View style={S.summaryRow}>
                                 <Text style={S.summaryLabel}>Degviela patēriņš (l/100km)</Text>
