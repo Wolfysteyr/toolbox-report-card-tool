@@ -88,6 +88,9 @@ class ReportController extends Controller
         $received  = $fuelRows->sum('volume');
         $fuelStart = $fuelRows->first()?->prev_volume ?? 0;
 
+        $distance     = $last->mileage - $first->prev_mileage;
+
+
         // odo end is now calculated based on average km/day for the period, since we don't have a guaranteed end-of-month fillup
         // get the amount of days in the period
         $odoPeriodDays = \Carbon\Carbon::parse($first->periods)->diffInDays(\Carbon\Carbon::parse($first->periods)->endOfMonth());
@@ -99,7 +102,6 @@ class ReportController extends Controller
         // also subtract the last fillup day from the odo period days to get the remaining days in the period after the last fillup, since we only want to estimate the odo end for those remaining days
         $estimatedOdoEnd = round($avgKmPerDay * $odoPeriodDays-$lastFillupDay, 0);
 
-        $distance     = $last->mileage - $first->prev_mileage;
         $fakeDistance = $distance + $estimatedOdoEnd;
 
         // we need to calculate the fuel consumed and fuel_end using the new estimated odo end
