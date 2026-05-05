@@ -229,10 +229,10 @@ export default function Report() {
                         <input type="text" id="factualCarFuelCons" name="factualCarFuelCons" disabled value={report?.factual_cons ?? ""}/>
 
                         <label htmlFor="reportUsedFuel">Izlietota degviela kopā (L):</label>
-                        <input type="text" id="reportUsedFuel" name="reportUsedFuel" disabled value={report?.used ?? ""}/>
+                        <input type="text" id="reportUsedFuel" name="reportUsedFuel" disabled value={report?.fake_used ?? ""} title={report?.used}/>
 
                         <label htmlFor="reportFuelEnd">Atlikums atgriežoties (L):</label>
-                        <input type="text" id="reportFuelEnd" name="reportFuelEnd" disabled value={report?.fuel_end ?? ""}/>
+                        <input type="text" id="reportFuelEnd" name="reportFuelEnd" disabled value={report?.fake_fuel_end ?? ""} title={report?.fuel_end}/>
                     </div>
                 </div>
 
@@ -272,20 +272,32 @@ export default function Report() {
                             <input type="text" id="startDate" name="startDate" disabled value={report?.period_start ?? ""}/>
                         </div>
                         <div className="period-field">
+                            <label htmlFor="lastFillDate">Pēdējās uzpildes datums</label>
+                            <input type="text" id="lastFillDate" name="lastFillDate" disabled value={report?.period_last_fillup ?? ""}/>
+                        </div>
+                        <div className="period-field">
                             <label htmlFor="endDate">Beigu datums</label>
                             <input type="text" id="endDate" name="endDate" disabled value={report?.period_end ?? ""}/>
                         </div>
                         <div className="period-field">
-                            <label htmlFor="odoStart">Perioda sākumā</label>
+                            <label htmlFor="odoStart">Perioda sākumā (km)</label>
                             <input type="text" id="odoStart" name="odoStart" disabled value={report?.odo_start ?? ""}/>
                         </div>
                         <div className="period-field">
-                            <label htmlFor="odoEnd">Perioda beigās</label>
+                            <label htmlFor="lastFillOdo">Pēdējās uzpilde (km)</label>
+                            <input type="text" id="lastFillOdo" name="lastFillOdo" disabled value={report?.odo_last_fillup ?? ""}/>
+                        </div>
+                        <div className="period-field">
+                            <label htmlFor="odoEnd">Perioda beigās (km)</label>
                             <input type="text" id="odoEnd" name="odoEnd" disabled value={report?.odo_end ?? ""}/>
                         </div>
                         <div className="period-field">
-                            <label htmlFor="distance">Nobrauktie km</label>
+                            <label htmlFor="distance">Nobrauktie km pēc pēdējās uzpildes</label>
                             <input type="text" id="distance" name="distance" disabled value={report?.distance ?? ""}/>
+                        </div>
+                        <div className="period-field">
+                            <label htmlFor="fakeDistance">Nobrauktie km perioda beigās</label>
+                            <input type="text" id="fakeDistance" name="fakeDistance" disabled value={report?.fakeDistance ?? ""}/>
                         </div>
                     </div>
                     <br />
