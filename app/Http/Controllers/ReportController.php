@@ -102,14 +102,14 @@ class ReportController extends Controller
         // also subtract the last fillup day from the odo period days to get the remaining days in the period after the last fillup
         $estimatedOdoEnd = round($avgKmPerDay * ($odoPeriodDays-$lastFillupDay), 0);
 
-        $fakeDistance = $distance + $estimatedOdoEnd;
+        $fakeDistance = $distance + $estimatedOdoEnd; // this is the total of both actual and fake distance
 
         // we need to calculate the fuel consumed and fuel_end using the new estimated odo end
         $fuelEnd     = $fuelRows->last()?->volume ?? 0;
         $used        = round($fuelStart + $received - $fuelEnd, 2); // fuel used based on actual data we have
 
         $factualCons = $distance > 0 ? round(($used / $distance) * 100, 2) : 0;
-        $fakeUsed    = round($factualCons * $fakeDistance / 100, 2) + $used; // fake fuel used calculated based on estimated odo end
+        $fakeUsed    = round($factualCons * $fakeDistance / 100, 2); // fake fuel used calculated based on estimated odo end
         $fakeFuelEnd = round($fuelEnd - ($fakeUsed - $used), 2); // fake fuel end calculated based on fake fuel used (removing the extra fuel used that we added in fake used to get the fuel end)
 
 
