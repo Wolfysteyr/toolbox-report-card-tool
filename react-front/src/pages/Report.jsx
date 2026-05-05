@@ -192,7 +192,7 @@ export default function Report() {
             </div>        
             <div className="header">
                 <img src={logo} alt="VTL logo" />
-                <h1>Ceļazīme</h1>
+                <h1>Ceļazīme {selectedMonth}-{selectedYear}-{report?.carno}</h1>
             </div>
             <div className="body">
                 <div className="car-info">

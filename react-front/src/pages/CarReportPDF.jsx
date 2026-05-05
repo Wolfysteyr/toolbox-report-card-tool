@@ -217,7 +217,7 @@ export default function CarReportPDF({ reports, month, year, logoUrl }) {
                     {/* Header */}
                     <View style={S.header}>
                         <Image style={S.logo} src={logoUrl} />
-                        <Text style={S.title}>Ceļazīme</Text>
+                        <Text style={S.title}>Ceļazīme {month}-{year}-{report.carno}</Text>
                         <View style={S.carSelection}>
                             <View style={S.selectionField}>
                                 <Text style={S.selectionLabel}>a/m valsts numurs</Text>
