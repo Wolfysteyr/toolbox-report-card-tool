@@ -229,10 +229,10 @@ export default function Report() {
                         <input type="text" id="factualCarFuelCons" name="factualCarFuelCons" disabled value={report?.factual_cons ?? ""}/>
 
                         <label htmlFor="reportUsedFuel">Izlietota degviela kopā (L):</label>
-                        <input type="text" id="reportUsedFuel" name="reportUsedFuel" disabled value={report?.fake_used ?? ""} title={report?.used}/>
+                        <input type="text" id="reportUsedFuel" name="reportUsedFuel" disabled value={report?.fake_used ?? ""} title={report?.used} style={{textDecoration: "underline", textDecorationStyle: "dashed"}}/>
 
                         <label htmlFor="reportFuelEnd">Atlikums atgriežoties (L):</label>
-                        <input type="text" id="reportFuelEnd" name="reportFuelEnd" disabled value={report?.fake_fuel_end ?? ""} title={report?.fuel_end}/>
+                        <input type="text" id="reportFuelEnd" name="reportFuelEnd" disabled value={report?.fake_fuel_end ?? ""} title={report?.fuel_end} style={{textDecoration: "underline", textDecorationStyle: "dashed"}}/>
                     </div>
                 </div>
 
@@ -297,7 +297,7 @@ export default function Report() {
                         </div>
                         <div className="period-field">
                             <label htmlFor="fakeDistance">Nobrauktie km perioda beigās</label>
-                            <input type="text" id="fakeDistance" name="fakeDistance" disabled value={report?.fakeDistance ?? ""}/>
+                            <input type="text" id="fakeDistance" name="fakeDistance" disabled value={report?.fake_distance ?? ""}/>
                         </div>
                     </div>
                     <br />
@@ -329,9 +329,9 @@ export default function Report() {
 
                 <div className="period-final">
                     <label htmlFor="finalDistance">Nobrauktie kilometri </label>
-                    <input type="text" id="finalDistance" name="finalDistance" disabled value={report?.distance ?? ""}/>
+                    <input type="text" id="finalDistance" name="finalDistance" disabled value={report?.fake_distance ?? ""}/>
                     <label htmlFor="finalFuelUsed">Patērētā degviela (litros)</label>
-                    <input type="text" id="finalFuelUsed" name="finalFuelUsed" disabled value={report?.used ?? ""}/>
+                    <input type="text" id="finalFuelUsed" name="finalFuelUsed" disabled value={report?.fake_used ?? ""}/>
                     <label htmlFor="finalFuelCons">Degvielas patēriņš (l/100km)</label>
                     <input type="text" id="finalFuelCons" name="finalFuelCons" disabled value={report?.factual_cons ?? ""}/>
                     <label htmlFor="atbildigais">Atbildiga persona:</label>
