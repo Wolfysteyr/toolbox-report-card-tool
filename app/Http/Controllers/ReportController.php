@@ -77,10 +77,13 @@ class ReportController extends Controller
                     ->first();
 
                 if ($nextFirstEntry) {
-                    $nextFirstEntry->update([
-                        'prev_volume' => $calc['fakeFuelEnd'],
-                        'prev_mileage' => $calc['odoEnd'],
-                    ]);
+                    Report::where('carno', $car)
+                        ->whereMonth('dated', $nextMonth->month)
+                        ->whereYear('dated', $nextMonth->year)
+                        ->update([
+                            'prev_volume' => $calc['fakeFuelEnd'],
+                            'prev_mileage' => $calc['odoEnd'],
+                        ]);
                 }
             }
         }
