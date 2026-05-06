@@ -149,7 +149,7 @@ class ReportController extends Controller
             $estimatedOdoEnd = round($avgKmPerDay * ($odoPeriodDays - $lastFillupDay), 0);
             $fakeDistance = $distance + $estimatedOdoEnd;
             $fakeUsed = round($factualCons * $fakeDistance / 100, 2);
-            $fakeFuelEnd = round($fuelEnd - ($fakeUsed - $used), 2);
+            $fakeFuelEnd = round(max(0, $fuelEnd - ($fakeUsed - $used)), 2);
         }
 
         return [
