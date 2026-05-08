@@ -136,6 +136,10 @@ class ReportController extends Controller
         $used = round($fuelStart + $received - $fuelEnd, 2);
         $factualCons = $distance > 0 ? round(($used / $distance) * 100, 2) : 0;
 
+        if ($factualCons <= 0) {
+            $factualCons = $first->paterins ?? 0;
+        }
+
         $odoPeriodDays = Carbon::parse($first->periods)->daysInMonth;
         $lastFillupDay = Carbon::parse($last->dated)->day;
 
@@ -162,9 +166,7 @@ class ReportController extends Controller
 
         }
 
-        if ($factualCons <= 0) {
-            $factualCons = $first->paterins ?? 0;
-        }
+
 
         return [
             'fuelStart' => round($fuelStart, 2),
