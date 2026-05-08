@@ -134,10 +134,10 @@ class ReportController extends Controller
         $distance = $last->mileage - $first->prev_mileage;
 
         // if prev_milage is 0 (first entry), then we take distance from mileage
-        if ($first->prev_mileage === 0 && $first->mileage > 0) {
+        if ($first->prev_mileage === 0 && $first->mileage > 0 || $first->prev_mileage === null && $first->mileage > 0) {
             $distance = $first->mileage;
         }
-        
+
         $fuelEnd = $fuelRows->last()?->volume ?? 0;
         $used = round($fuelStart + $received - $fuelEnd, 2);
         $factualCons = $distance > 0 ? round(($used / $distance) * 100, 2) : 0;
