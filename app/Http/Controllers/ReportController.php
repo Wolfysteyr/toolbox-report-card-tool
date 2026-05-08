@@ -133,9 +133,12 @@ class ReportController extends Controller
         $fuelStart = $fuelRows->first()?->prev_volume ?? 0;
         $distance = $last->mileage - $first->prev_mileage;
 
-        // if prev_milage is 0 (first entry), then we take distance from mileage
-        if ($first->prev_mileage === 0 && $first->mileage > 0 || $first->prev_mileage === null && $first->mileage > 0) {
-            $distance = $first->mileage;
+        if (($first->prev_mileage == 0 || $first->prev_mileage === null) && $first->mileage > 0) {
+            if ($rows->count() === 1) {
+                $distance = 0;
+            } else {
+                $distance = $last->mileage - $first->mileage;
+            }
         }
 
         $fuelEnd = $fuelRows->last()?->volume ?? 0;
@@ -174,8 +177,6 @@ class ReportController extends Controller
             }
 
         }
-
-
 
         return [
             'fuelStart' => round($fuelStart, 2),
