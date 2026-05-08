@@ -132,10 +132,15 @@ class ReportController extends Controller
         $received = $fuelRows->sum('volume');
         $fuelStart = $fuelRows->first()?->prev_volume ?? 0;
         $distance = $last->mileage - $first->prev_mileage;
+        // if prev_milage is 0 (first entry), then we take distance from mileage
+        if ($first->prev_mileage === 0 && $first->mileage > 0) {
+            $distance = $first->mileage;
+        }
         $fuelEnd = $fuelRows->last()?->volume ?? 0;
         $used = round($fuelStart + $received - $fuelEnd, 2);
         $factualCons = $distance > 0 ? round(($used / $distance) * 100, 2) : 0;
 
+        // If factual consumption is 0 or negative (which can happen due to data issues), we fallback to the initial consumption value from the first entry
         if ($factualCons <= 0) {
             $factualCons = $first->paterins ?? 0;
         }
@@ -143,19 +148,21 @@ class ReportController extends Controller
         $odoPeriodDays = Carbon::parse($first->periods)->daysInMonth;
         $lastFillupDay = Carbon::parse($last->dated)->day;
 
+        // If the last fill-up is on the last day of the month, we can trust the distance and fuel end values as they are
         if ($lastFillupDay === $odoPeriodDays) {
             $estimatedOdoEnd = 0;
             $fakeDistance = $distance;
             $fakeUsed = $used;
             $fakeFuelEnd = $fuelEnd;
         } else {
+            // Estimate the end values based on the average daily distance and consumption
             $avgKmPerDay = $lastFillupDay > 0 ? ($distance / $lastFillupDay) : 2;
             $estimatedOdoEnd = round($avgKmPerDay * ($odoPeriodDays - $lastFillupDay), 0);
             $fakeDistance = $distance + $estimatedOdoEnd;
             $fakeUsed = round($factualCons * $fakeDistance / 100, 2);
             $fakeFuelEnd = round($fuelEnd - ($fakeUsed - $used), 2);
 
-            
+            // If the estimated fuel end is less than 5 liters, we adjust it to 5 and recalculate the distance and used fuel accordingly
             if ($fakeFuelEnd < 5 && $factualCons > 0) {
                 $maxFakeUsed = $fuelEnd + $used - 5;
                 $fakeDistance = round($maxFakeUsed * 100 / $factualCons, 0);
